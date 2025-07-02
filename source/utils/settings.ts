@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import type { Config } from '../types/futaba.js';
 
 export const defaultConfig = {
   keyConfig: {
@@ -25,7 +26,7 @@ export function getConfigFilePath(): string {
   return path.join(dir, 'config.json');
 }
 
-export function loadConfig() {
+export function loadConfig(): Config {
   const file = getConfigFilePath();
   if (fs.existsSync(file)) {
     try {
@@ -42,7 +43,7 @@ export function loadConfig() {
   return defaultConfig;
 }
 
-export function saveConfig(configObj: any) {
+export function saveConfig(configObj: Config) {
   const file = getConfigFilePath();
   const objToSave = {
     ...configObj,

@@ -12,7 +12,7 @@ import { exec } from 'child_process';
 import process from 'process';
 import UrlSelectModal from './components/UrlSelectModal.js';
 import QuoteModal from './components/QuoteModal.js';
-import type { HistoryItem } from './types/futaba.js';
+import type { HistoryItem, Config, InkKey, Res } from './types/futaba.js';
 import HistoryList from './components/HistoryList.js';
 import SettingsEditor from './components/SettingsEditor.js';
 import { loadHistory, saveHistory } from './utils.js';
@@ -31,7 +31,7 @@ export default function App() {
 	const [urlSelectMode, setUrlSelectMode] = useState<null | { urls: string[]; resIdx: number }> (null);
 	const [hideDeletedRes, setHideDeletedRes] = useState(false);
 	const [jumpMessage, _setJumpMessage] = useState<string | null>(null);
-	const [quoteModal, setQuoteModal] = useState<{res?: any, message?: string} | null>(null);
+	const [quoteModal, setQuoteModal] = useState<{res?: Res[], message?: string} | null>(null);
 	const [history, setHistory] = useState<HistoryItem[]>(() => loadHistory());
 	const [selectedHistory, setSelectedHistory] = useState(0);
 	const [showAllHistory, setShowAllHistory] = useState(false);
@@ -70,15 +70,15 @@ export default function App() {
 	} = useThreadDetail(board?.url ?? '', threadId);
 
 	// 設定編集用の全項目リスト
-	const keyConfigKeys = Object.keys(configState.keyConfig);
-	const threadGridKeys = Object.keys(configState.threadGrid).map(k => `threadGrid.${k}`);
-	const threadDetailKeys = Object.keys(configState.threadDetail).map(k => `threadDetail.${k}`);
+	const keyConfigKeys: string[] = Object.keys(configState.keyConfig);
+	const threadGridKeys: string[] = Object.keys(configState.threadGrid).map(k => `threadGrid.${k}`);
+	const threadDetailKeys: string[] = Object.keys(configState.threadDetail).map(k => `threadDetail.${k}`);
 	// 設定値取得
 	function getValue(key: string): string | number {
 		if (!key) return '';
 		if (keyConfigKeys.includes(key)) return configState.keyConfig[key] ?? '';
-		if (threadGridKeys.includes(key)) return configState.threadGrid[key.replace('threadGrid.', '')] ?? '';
-		if (threadDetailKeys.includes(key)) return configState.threadDetail[key.replace('threadDetail.', '')] ?? '';
+		if (threadGridKeys.includes(key)) return configState.threadGrid[key.replace('threadGrid.', '') as keyof Config['threadGrid']] ?? '';
+		if (threadDetailKeys.includes(key)) return configState.threadDetail[key.replace('threadDetail.', '') as keyof Config['threadDetail']] ?? '';
 		return '';
 	}
 
@@ -89,7 +89,7 @@ export default function App() {
 		).replace(/　/g, ' ');
 	}
 
-	function isKey(input: string, key: any, configKey: string) {
+	function isKey(input: string, key: InkKey, configKey: string) {
 		const val = configState.keyConfig[configKey];
 		if (!val) return false;
 		// 特殊キー
@@ -315,11 +315,11 @@ export default function App() {
 					settings.setEditValue(String(getValue(k)));
 					settings.setMessage('');
 				}
-			} else if (input === configState.keyConfig.saveSettings) {
+			} else if (input === configState.keyConfig['saveSettings']) {
 				saveConfig(configState);
 				setConfigState(loadConfig());
 				settings.setMessage('保存しました');
-			} else if (input === configState.keyConfig.quit || key.escape) {
+			} else if (input === configState.keyConfig['quit'] || key.escape) {
 				setScreen('board');
 				settings.setMessage('');
 			}

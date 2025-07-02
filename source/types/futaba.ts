@@ -34,3 +34,27 @@ export type HistoryItem = {
 	accessedAt: string;
 };
 
+export type Config = {
+  keyConfig: Record<string, string>;
+  helpText: Record<string, string>;
+  threadGrid: {
+    cols: number;
+    rows: number;
+  };
+  threadDetail: {
+    windowSize: number;
+  };
+};
+
+export type InkKey = {
+  upArrow?: boolean;
+  downArrow?: boolean;
+  leftArrow?: boolean;
+  rightArrow?: boolean;
+  return?: boolean;
+  escape?: boolean;
+  ctrl?: boolean;
+  shift?: boolean;
+  meta?: boolean;
+};
+

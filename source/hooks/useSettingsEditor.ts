@@ -2,8 +2,9 @@ import { useState } from 'react';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
+import type { Config } from '../types/futaba.js';
 
-export function useSettingsEditor(configState: any, setConfigState: (c: any) => void) {
+export function useSettingsEditor(configState: Config, setConfigState: (c: Config) => void) {
   // 設定画面用状態
   const [selected, setSelected] = useState(0);
   const [editing, setEditing] = useState(false);
@@ -12,16 +13,16 @@ export function useSettingsEditor(configState: any, setConfigState: (c: any) => 
   const [keyInputMode, setKeyInputMode] = useState(false);
 
   // 設定編集用の全項目リスト
-  const keyConfigKeys = Object.keys(configState.keyConfig);
-  const threadGridKeys = Object.keys(configState.threadGrid).map(k => `threadGrid.${k}`);
-  const threadDetailKeys = Object.keys(configState.threadDetail).map(k => `threadDetail.${k}`);
-  const allKeys = [...keyConfigKeys, ...threadGridKeys, ...threadDetailKeys];
+  const keyConfigKeys: string[] = Object.keys(configState.keyConfig);
+  const threadGridKeys: string[] = Object.keys(configState.threadGrid).map(k => `threadGrid.${k}`);
+  const threadDetailKeys: string[] = Object.keys(configState.threadDetail).map(k => `threadDetail.${k}`);
+  const allKeys: string[] = [...keyConfigKeys, ...threadGridKeys, ...threadDetailKeys];
 
   function getValue(key: string): string | number {
     if (!key) return '';
     if (keyConfigKeys.includes(key)) return configState.keyConfig[key] ?? '';
-    if (threadGridKeys.includes(key)) return configState.threadGrid[key.replace('threadGrid.', '')] ?? '';
-    if (threadDetailKeys.includes(key)) return configState.threadDetail[key.replace('threadDetail.', '')] ?? '';
+    if (threadGridKeys.includes(key)) return configState.threadGrid[key.replace('threadGrid.', '') as keyof Config['threadGrid']] ?? '';
+    if (threadDetailKeys.includes(key)) return configState.threadDetail[key.replace('threadDetail.', '') as keyof Config['threadDetail']] ?? '';
     return '';
   }
 
@@ -58,7 +59,7 @@ export function useSettingsEditor(configState: any, setConfigState: (c: any) => 
     setMessage('変更を反映しました（wで保存）');
   }
 
-  function saveSettingsToFile(configObj: any) {
+  function saveSettingsToFile(configObj: Config) {
     const xdgConfigHome = process.env['XDG_CONFIG_HOME'] || path.join(os.homedir(), '.config');
     const dir = path.join(xdgConfigHome, 'futaba-tui');
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
