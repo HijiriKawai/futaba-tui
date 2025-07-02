@@ -11,6 +11,7 @@ import { Text } from 'ink';
 import { exec } from 'child_process';
 import process from 'process';
 import UrlSelectModal from './components/UrlSelectModal.js';
+import QuoteModal from './components/QuoteModal.js';
 
 const COLS = 5;
 
@@ -25,6 +26,8 @@ export default function App() {
 	const [reloadTrigger, setReloadTrigger] = useState(0);
 	const [urlSelectMode, setUrlSelectMode] = useState<null | { urls: string[]; resIdx: number }> (null);
 	const [hideDeletedRes, setHideDeletedRes] = useState(false);
+	const [jumpMessage, _setJumpMessage] = useState<string | null>(null);
+	const [quoteModal, setQuoteModal] = useState<{res?: any, message?: string} | null>(null);
 
 	// 板選択
 	const {
@@ -154,6 +157,39 @@ export default function App() {
 			else if (input === 'h') {
 				setHideDeletedRes(v => !v);
 			}
+			else if (input === 'c') {
+				// 複数引用行対応: すべての引用行について上方向に引用元を探す
+				const filtered = hideDeletedRes
+					? responses.filter(res =>
+						!(res.body.startsWith('書き込みをした人によって削除されました') ||
+							res.body.startsWith('スレッドを立てた人によって削除されました') ||
+							res.body.startsWith('削除依頼によって隔離されました')))
+					: responses;
+				const curIdx = filtered.findIndex((_, i) => responses.indexOf(filtered[i]!) === selectedRes);
+				if (curIdx > 0) {
+					const curRes = filtered[curIdx];
+					if (curRes) {
+						const quoteLines = curRes.body.split('\n').filter(line => line.startsWith('>'));
+						const foundResArr: any[] = [];
+						for (const quote of quoteLines) {
+							const targetLine = quote?.replace(/^>+/, '').trim();
+							for (let i = curIdx - 1; i >= 0; i--) {
+								const resi = filtered[i];
+								if (resi && typeof resi.body === 'string' && resi.body.split('\n').some(line => line.replace(/^>+/, '').trim() === targetLine)) {
+									// すでに追加済みでなければpush
+									if (!foundResArr.includes(resi)) foundResArr.push(resi);
+									break;
+								}
+							}
+						}
+						if (foundResArr.length > 0) {
+							setQuoteModal({ res: foundResArr });
+						} else {
+							setQuoteModal({ message: '引用元が見つかりません' });
+						}
+					}
+				}
+			}
 		}
 		if (urlSelectMode) {
 			if (/^[1-9]$/.test(input)) {
@@ -169,6 +205,13 @@ export default function App() {
 				setUrlSelectMode(null);
 			} else if (input === 'q' || key.escape) {
 				setUrlSelectMode(null);
+			}
+			return;
+		}
+		// 引用モーダル表示中はq/esc/Enterで閉じる
+		if (quoteModal) {
+			if (input === 'q' || key.escape || key.return) {
+				setQuoteModal(null);
 			}
 			return;
 		}
@@ -202,6 +245,9 @@ export default function App() {
 		if (errorRes) return <Text color="red">{errorRes}</Text>;
 		return (
 			<>
+				{quoteModal && (
+					<QuoteModal res={quoteModal.res} message={quoteModal.message} onClose={() => setQuoteModal(null)} />
+				)}
 				<ThreadDetail
 					responses={responses}
 					selected={selectedRes}
@@ -211,6 +257,9 @@ export default function App() {
 					setScrollOffset={setScrollOffset}
 					hideDeletedRes={hideDeletedRes}
 				/>
+				{jumpMessage && (
+					<Text color="red">{jumpMessage}</Text>
+				)}
 				{urlSelectMode && (
 					<UrlSelectModal
 						urls={urlSelectMode.urls}
