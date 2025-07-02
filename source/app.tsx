@@ -106,6 +106,13 @@ export default function App() {
 					setUrlSelectMode({ urls: imgs, resIdx: selectedRes });
 				}
 			}
+			// 数字キーでソートモードを直接選択
+			if (/^[1-9]$/.test(input)) {
+				const idx = parseInt(input, 10) - 1;
+				if (idx >= 0 && idx < SORT_MODES.length) {
+					setSortMode(idx);
+				}
+			}
 		}
 		if (screen === 'threadDetail') {
 			if (key.downArrow) setSelectedRes(prev => (prev + 1) % responses.length);

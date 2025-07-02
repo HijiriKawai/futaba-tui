@@ -45,6 +45,9 @@ export default function ThreadGrid({ threads, selected, sortMode, sortModes, thu
 			<Text color="cyan">
 				スレッド一覧（↑↓←→:移動 Enter:詳細 b:板選択 r:リロード o:画像 [ ]:ソート q:終了）
 			</Text>
+			<Text color="gray">
+				数字キーでソート切り替え: {sortModes.map((m, i) => `${i+1}:${m.name}`).join(' ')}
+			</Text>
 			<Text color="yellow">
 				全{threads.length}件中、
 				{Math.min(scrollRowOffset * COLS + 1, threads.length)}〜

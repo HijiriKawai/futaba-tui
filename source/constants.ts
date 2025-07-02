@@ -10,6 +10,6 @@ export const SORT_MODES: SortMode[] = [
   { name: '古順', param: '&sort=2' },
   { name: '多順', param: '&sort=3' },
   { name: '勢順', param: '&sort=6' },
-  { name: '小順', param: '&sort=4' },
+  { name: '少順', param: '&sort=4' },
   { name: 'そ順', param: '&sort=8' },
 ];
