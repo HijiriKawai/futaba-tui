@@ -27,7 +27,15 @@ export default function ThreadDetail({ responses, selected, resThumb, mediaThumb
 
   return (
     <Box flexDirection="column">
-      <Text color="cyan">レス一覧（↑↓で移動、bでスレ一覧に戻る、rでリロード、qで終了）</Text>
+      <Text color="cyan">
+        {(() => {
+          const firstBody = responses[0]?.body;
+          if (!firstBody) return 'レス一覧（↑↓で移動、bでスレ一覧に戻る、rでリロード、qで終了）';
+          const first = firstBody.replace(/\n/g, '');
+          const head = first.length > 10 ? first.slice(0, 10) + '…' : first;
+          return `${head}（↑↓で移動、bでスレ一覧に戻る、rでリロード、qで終了）`;
+        })()}
+      </Text>
       <Text color="yellow">
         全{responses.length}件中、{Math.min(scrollOffset + 1, responses.length)}〜{Math.min(scrollOffset + WINDOW_SIZE, responses.length)}件を表示中
       </Text>
