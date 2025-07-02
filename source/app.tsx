@@ -21,6 +21,7 @@ export default function App() {
 	const [threadId, setThreadId] = useState<string | null>(null);
 	const [scrollRowOffset, setScrollRowOffset] = useState(0);
 	const [scrollOffset, setScrollOffset] = useState(0);
+	const [reloadTrigger, setReloadTrigger] = useState(0);
 
 	// 板選択
 	const {
@@ -38,7 +39,7 @@ export default function App() {
 		thumbCache,
 		loading: loadingThreads,
 		error: errorThreads,
-	} = useThreadGrid(board?.url ?? '', sortMode);
+	} = useThreadGrid(board?.url ?? '', sortMode, reloadTrigger);
 
 	// レス一覧
 	const {
@@ -68,7 +69,7 @@ export default function App() {
 			} else if (input === ']') {
 				setSortMode(prev => (prev + 1) % SORT_MODES.length);
 			} else if (input === 'r') {
-				// 再取得はuseThreadGridの依存で自動
+				setReloadTrigger(t => t + 1);
 			} else if (input === 'b') {
 				setScrollRowOffset(0);
 				setScreen('board');
@@ -111,6 +112,11 @@ export default function App() {
 					else cmd = `xdg-open "${img}"`;
 					exec(cmd);
 				}
+			}
+			else if (input === 'r') {
+				// レス一覧リロード: threadIdを一度nullにしてから再セット
+				setThreadId(null);
+				setTimeout(() => setThreadId(threadId), 0);
 			}
 		}
 	});

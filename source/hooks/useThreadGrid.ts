@@ -3,7 +3,7 @@ import { fetchThreads } from '../api/fetchThreads.js';
 import terminalImage from 'terminal-image';
 import { Thread } from '../types/futaba.js';
 
-export function useThreadGrid(boardUrl: string, sortMode: number) {
+export function useThreadGrid(boardUrl: string, sortMode: number, reloadTrigger: number) {
   const [threads, setThreads] = useState<Thread[]>([]);
   const [selectedThread, setSelectedThread] = useState(0);
   const [thumbCache, setThumbCache] = useState<{ [imgFile: string]: string }>({});
@@ -12,11 +12,13 @@ export function useThreadGrid(boardUrl: string, sortMode: number) {
 
   useEffect(() => {
     setLoading(true);
+    setSelectedThread(0);
+    setError(null);
     fetchThreads(boardUrl, sortMode)
       .then(setThreads)
       .catch(() => setError('スレッド一覧の取得に失敗しました'))
       .finally(() => setLoading(false));
-  }, [boardUrl, sortMode]);
+  }, [boardUrl, sortMode, reloadTrigger]);
 
   useEffect(() => {
     async function loadThumbs() {
