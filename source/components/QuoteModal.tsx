@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { Res } from '../types/futaba.js';
+import config, { generateHelpText } from '../config.js';
 
 type Props = {
   res?: Res[];
@@ -47,7 +48,7 @@ export default function QuoteModal({ res, message }: Props) {
           <Text color="red">{message ?? '引用元が見つかりません'}</Text>
         )}
         <Text color="gray">
-          {res && res.length > 0 ? '数字:ジャンプ ' : ''}q/esc/Enter:閉じる
+          {res && res.length > 0 ? generateHelpText(config.helpText.quoteModal, config.keyConfig) : generateHelpText(config.helpText.quoteModal, config.keyConfig)}
         </Text>
       </Box>
     </Box>

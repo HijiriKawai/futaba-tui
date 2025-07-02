@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { HistoryItem } from '../types/futaba.js';
+import config, { generateHelpText } from '../config.js';
 
 type Props = {
   history: HistoryItem[];
@@ -11,7 +12,7 @@ type Props = {
 export default function HistoryList({ history, selectedHistory }: Props) {
   return (
     <Box flexDirection="column">
-      <Text color="cyan">履歴一覧（↑↓:移動 Enter:開く b:戻る q:終了）</Text>
+      <Text color="cyan">{generateHelpText(config.helpText.historyList, config.keyConfig)}</Text>
       {history.length === 0 ? (
         <Text color="yellow">履歴がありません</Text>
       ) : (

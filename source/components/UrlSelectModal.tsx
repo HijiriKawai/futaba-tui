@@ -1,5 +1,6 @@
 import React from 'react';
 import { Box, Text } from 'ink';
+import config, { generateHelpText } from '../config.js';
 
 type Props = {
   urls: string[];
@@ -19,7 +20,7 @@ export default function UrlSelectModal({ urls }: Props) {
         minWidth={40}
         alignItems="flex-start"
       >
-        <Text color="yellow">URLを選択してください（数字:選択 q/esc:キャンセル）</Text>
+        <Text color="yellow">{generateHelpText(config.helpText.urlSelectModal, config.keyConfig)}</Text>
         {urls.map((url, i) => (
           <Text key={i} color="cyan">{i + 1}: {url}</Text>
         ))}

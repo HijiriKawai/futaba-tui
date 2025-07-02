@@ -1,8 +1,9 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { Res } from '../types/futaba.js';
+import config, { generateHelpText } from '../config.js';
 
-const WINDOW_SIZE = 7;
+const WINDOW_SIZE = config.threadDetail.windowSize;
 
 type UrlSelectMode = { urls: string[]; resIdx: number } | null;
 
@@ -40,10 +41,10 @@ export default function ThreadDetail({ responses, selected, resThumb, mediaThumb
       <Text color="cyan">
         {(() => {
           const firstBody = responses[0]?.body;
-          if (!firstBody) return 'レス一覧（↑↓:移動 b:戻る r:リロード o:画像 l:リンク x:削除非表示 h:履歴 q:終了）';
+          if (!firstBody) return generateHelpText(config.helpText.threadDetail, config.keyConfig);
           const first = firstBody.replace(/\n/g, '');
           const head = first.length > 10 ? first.slice(0, 10) + '…' : first;
-          return `${head}（↑↓:移動 b:戻る r:リロード o:画像 l:リンク x:削除非表示 h:履歴 q:終了）`;
+          return `${head}（${generateHelpText(config.helpText.threadDetail, config.keyConfig).replace(/^[^（]*（/, '')}`;
         })()}
       </Text>
       <Text color="yellow">

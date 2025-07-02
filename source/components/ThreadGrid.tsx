@@ -1,9 +1,10 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { Thread, SortMode } from '../types/futaba.js';
+import config, { generateHelpText } from '../config.js';
 
-const COLS = 5;
-const ROWS = 3;
+const COLS = config.threadGrid.cols;
+const ROWS = config.threadGrid.rows;
 
 type Props = {
   threads: Thread[];
@@ -43,7 +44,7 @@ export default function ThreadGrid({ threads, selected, sortMode, sortModes, thu
   return (
 		<Box flexDirection="column">
 			<Text color="cyan">
-				スレッド一覧（↑↓←→:移動 Enter:詳細 b:板選択 r:リロード o:画像 [ ]:ソート h:履歴 q:終了）
+				{generateHelpText(config.helpText.threadList, config.keyConfig)}
 			</Text>
 			<Text color="gray">
 				数字キーでソート切り替え: {sortModes.map((m, i) => `${i+1}:${m.name}`).join(' ')}

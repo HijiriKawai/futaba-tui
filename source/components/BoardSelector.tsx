@@ -1,6 +1,7 @@
 import React from 'react';
 import { Box, Text } from 'ink';
 import type { Board } from '../types/futaba.js';
+import config, { generateHelpText } from '../config.js';
 
 type Props = {
   boards: Board[];
@@ -10,7 +11,7 @@ type Props = {
 export default function BoardSelector({ boards, selected }: Props) {
   return (
     <Box flexDirection="column">
-      <Text color="cyan">板を選択してください（↑↓:移動 Enter:決定 q:終了）</Text>
+      <Text color="cyan">{generateHelpText(config.helpText.board, config.keyConfig)}</Text>
       {boards.map((board, idx) => (
         <Text
           key={board.key}
