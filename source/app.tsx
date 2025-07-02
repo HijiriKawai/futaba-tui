@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useInput } from 'ink';
 import BoardSelector from './components/BoardSelector.js';
 import ThreadGrid from './components/ThreadGrid.js';
@@ -12,10 +12,12 @@ import { exec } from 'child_process';
 import process from 'process';
 import UrlSelectModal from './components/UrlSelectModal.js';
 import QuoteModal from './components/QuoteModal.js';
+import type { HistoryItem } from './types/futaba.js';
+import HistoryList from './components/HistoryList.js';
 
 const COLS = 5;
 
-type Screen = 'board' | 'threadList' | 'threadDetail';
+type Screen = 'board' | 'threadList' | 'threadDetail' | 'historyList';
 
 export default function App() {
 	const [screen, setScreen] = useState<Screen>('board');
@@ -28,6 +30,8 @@ export default function App() {
 	const [hideDeletedRes, setHideDeletedRes] = useState(false);
 	const [jumpMessage, _setJumpMessage] = useState<string | null>(null);
 	const [quoteModal, setQuoteModal] = useState<{res?: any, message?: string} | null>(null);
+	const [history, setHistory] = useState<HistoryItem[]>([]);
+	const [selectedHistory, setSelectedHistory] = useState(0);
 
 	// 板選択
 	const {
@@ -120,6 +124,10 @@ export default function App() {
 				if (idx >= 0 && idx < SORT_MODES.length) {
 					setSortMode(idx);
 				}
+			}
+			else if (inputNorm === 'h') {
+				setScreen('historyList');
+				setSelectedHistory(0);
 			}
 		}
 		if (screen === 'threadDetail') {
@@ -223,6 +231,10 @@ export default function App() {
 				}
 				return;
 			}
+			else if (inputNorm === 'h') {
+				setScreen('historyList');
+				setSelectedHistory(0);
+			}
 		}
 		if (urlSelectMode) {
 			if (/^[1-9]$/.test(inputNorm)) {
@@ -241,7 +253,48 @@ export default function App() {
 			}
 			return;
 		}
+		if (screen === 'historyList') {
+			if (key.downArrow) setSelectedHistory(prev => (prev + 1) % history.length);
+			else if (key.upArrow) setSelectedHistory(prev => (prev - 1 + history.length) % history.length);
+			else if (inputNorm === 'b') setScreen('threadList');
+			else if (key.return) {
+				const item = history[selectedHistory];
+				if (item) {
+					setThreadId(item.threadId);
+					setScreen('threadDetail');
+				}
+			}
+			else if (inputNorm === 'q') process.exit(0);
+			return;
+		}
 	});
+
+	// ThreadDetailを開くたびに履歴を追加
+	useEffect(() => {
+		if (screen === 'threadDetail' && threadId && responses.length > 0 && board) {
+			const firstRes = responses[0];
+			if (!firstRes) return;
+			let firstResHead = firstRes.body.replace(/\n/g, '');
+			if (firstResHead.length > 10) {
+				firstResHead = firstResHead.slice(0, 10) + '…';
+			}
+			const thumbUrl = firstRes.imgUrl;
+			setHistory(prev => {
+				// threadId重複は最新アクセスで上書き
+				const filtered = prev.filter(h => h.threadId !== threadId);
+				return [
+					{
+						boardName: board.name,
+						threadId,
+						thumbUrl,
+						firstResHead,
+						accessedAt: new Date().toISOString(),
+					},
+					...filtered,
+				];
+			});
+		}
+	}, [screen, threadId, responses, board]);
 
 	if (screen === 'board') {
 		return (
@@ -318,6 +371,15 @@ export default function App() {
 					/>
 				)}
 			</>
+		);
+	}
+	if (screen === 'historyList') {
+		return (
+			<HistoryList
+				history={history}
+				selectedHistory={selectedHistory}
+				setSelectedHistory={setSelectedHistory}
+			/>
 		);
 	}
 	return null;

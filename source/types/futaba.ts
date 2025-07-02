@@ -25,3 +25,12 @@ export type SortMode = {
   name: string;
   param: string;
 };
+
+export type HistoryItem = {
+	boardName: string;
+	threadId: string;
+	thumbUrl?: string;
+	firstResHead: string;
+	accessedAt: string;
+};
+
