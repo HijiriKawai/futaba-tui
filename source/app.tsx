@@ -115,7 +115,7 @@ export default function App() {
 			}
 		}
 		if (screen === 'threadDetail') {
-			if (key.downArrow) setSelectedRes(prev => (prev + 1) % responses.length);
+			if (key.downArrow || key.return) setSelectedRes(prev => (prev + 1) % responses.length);
 			else if (key.upArrow) setSelectedRes(prev => (prev - 1 + responses.length) % responses.length);
 			else if (input === 'b') {
 				setScrollOffset(0);
