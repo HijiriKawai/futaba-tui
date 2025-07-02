@@ -15,6 +15,7 @@ import QuoteModal from './components/QuoteModal.js';
 import type { HistoryItem } from './types/futaba.js';
 import HistoryList from './components/HistoryList.js';
 import config from './config.js';
+import { loadHistory, saveHistory } from './utils.js';
 
 type Screen = 'board' | 'threadList' | 'threadDetail' | 'historyList';
 
@@ -29,7 +30,7 @@ export default function App() {
 	const [hideDeletedRes, setHideDeletedRes] = useState(false);
 	const [jumpMessage, _setJumpMessage] = useState<string | null>(null);
 	const [quoteModal, setQuoteModal] = useState<{res?: any, message?: string} | null>(null);
-	const [history, setHistory] = useState<HistoryItem[]>([]);
+	const [history, setHistory] = useState<HistoryItem[]>(() => loadHistory());
 	const [selectedHistory, setSelectedHistory] = useState(0);
 
 	// 板選択
@@ -269,6 +270,11 @@ export default function App() {
 			});
 		}
 	}, [screen, threadId, responses, board]);
+
+	// 履歴の保存
+	useEffect(() => {
+		saveHistory(history);
+	}, [history]);
 
 	if (screen === 'board') {
 		return (
