@@ -4,6 +4,8 @@ import type { Res } from '../types/futaba.js';
 
 const WINDOW_SIZE = 7;
 
+type UrlSelectMode = { urls: string[]; resIdx: number } | null;
+
 type Props = {
   responses: Res[];
   selected: number;
@@ -11,9 +13,10 @@ type Props = {
   mediaThumbCache: { [url: string]: string };
   scrollOffset: number;
   setScrollOffset: (offset: number) => void;
+  urlSelectMode?: UrlSelectMode;
 };
 
-export default function ThreadDetail({ responses, selected, resThumb, mediaThumbCache, scrollOffset, setScrollOffset }: Props) {
+export default function ThreadDetail({ responses, selected, resThumb, mediaThumbCache, scrollOffset, setScrollOffset, urlSelectMode }: Props) {
   // スクロールオフセット調整
   React.useEffect(() => {
     if (selected < scrollOffset) {
@@ -82,6 +85,15 @@ export default function ThreadDetail({ responses, selected, resThumb, mediaThumb
             </Box>
           );
         })
+      )}
+      {/* URL選択モード時のURL一覧表示 */}
+      {urlSelectMode && urlSelectMode.urls.length > 1 && (
+        <Box flexDirection="column" marginTop={1} borderStyle="round" borderColor="yellow">
+          <Text color="yellow">URLを選択してください（1〜{urlSelectMode.urls.length}、q/escでキャンセル）</Text>
+          {urlSelectMode.urls.map((url, i) => (
+            <Text key={i} color="cyan">{i+1}: {url}</Text>
+          ))}
+        </Box>
       )}
     </Box>
   );

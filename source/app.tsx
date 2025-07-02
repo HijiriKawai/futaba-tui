@@ -10,6 +10,7 @@ import { useThreadDetail } from './hooks/useThreadDetail.js';
 import { Text } from 'ink';
 import { exec } from 'child_process';
 import process from 'process';
+import UrlSelectModal from './components/UrlSelectModal.js';
 
 const COLS = 5;
 
@@ -22,6 +23,7 @@ export default function App() {
 	const [scrollRowOffset, setScrollRowOffset] = useState(0);
 	const [scrollOffset, setScrollOffset] = useState(0);
 	const [reloadTrigger, setReloadTrigger] = useState(0);
+	const [urlSelectMode, setUrlSelectMode] = useState<null | { urls: string[]; resIdx: number }> (null);
 
 	// 板選択
 	const {
@@ -118,6 +120,39 @@ export default function App() {
 				setThreadId(null);
 				setTimeout(() => setThreadId(threadId), 0);
 			}
+			else if (input === 'l') {
+				const res = responses[selectedRes];
+				const urls = res?.body.match(/https?:\/\/[^\s]+/g);
+				if (urls && urls.length > 0) {
+					if (urls.length === 1) {
+						const url = urls[0];
+						let cmd = '';
+						if (process.platform === 'darwin') cmd = `open "${url}"`;
+						else if (process.platform === 'win32') cmd = `start "" "${url}"`;
+						else cmd = `xdg-open "${url}"`;
+						exec(cmd);
+					} else {
+						setUrlSelectMode({ urls, resIdx: selectedRes });
+					}
+				}
+			}
+		}
+		if (urlSelectMode) {
+			if (/^[1-9]$/.test(input)) {
+				const idx = parseInt(input, 10) - 1;
+				const url = urlSelectMode.urls[idx];
+				if (url) {
+					let cmd = '';
+					if (process.platform === 'darwin') cmd = `open \"${url}\"`;
+					else if (process.platform === 'win32') cmd = `start \"\" \"${url}\"`;
+					else cmd = `xdg-open \"${url}\"`;
+					exec(cmd);
+				}
+				setUrlSelectMode(null);
+			} else if (input === 'q' || key.escape) {
+				setUrlSelectMode(null);
+			}
+			return;
 		}
 	});
 
@@ -148,14 +183,33 @@ export default function App() {
 		if (loadingRes) return <Text>読み込み中…</Text>;
 		if (errorRes) return <Text color="red">{errorRes}</Text>;
 		return (
-			<ThreadDetail
-				responses={responses}
-				selected={selectedRes}
-				resThumb={resThumb}
-				mediaThumbCache={mediaThumbCache}
-				scrollOffset={scrollOffset}
-				setScrollOffset={setScrollOffset}
-			/>
+			<>
+				<ThreadDetail
+					responses={responses}
+					selected={selectedRes}
+					resThumb={resThumb}
+					mediaThumbCache={mediaThumbCache}
+					scrollOffset={scrollOffset}
+					setScrollOffset={setScrollOffset}
+				/>
+				{urlSelectMode && (
+					<UrlSelectModal
+						urls={urlSelectMode.urls}
+						onSelect={idx => {
+							const url = urlSelectMode.urls[idx];
+							if (url) {
+								let cmd = '';
+								if (process.platform === 'darwin') cmd = `open \"${url}\"`;
+								else if (process.platform === 'win32') cmd = `start \"\" \"${url}\"`;
+								else cmd = `xdg-open \"${url}\"`;
+								exec(cmd);
+							}
+							setUrlSelectMode(null);
+						}}
+						onCancel={() => setUrlSelectMode(null)}
+					/>
+				)}
+			</>
 		);
 	}
 	return null;
