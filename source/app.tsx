@@ -24,6 +24,7 @@ export default function App() {
 	const [scrollOffset, setScrollOffset] = useState(0);
 	const [reloadTrigger, setReloadTrigger] = useState(0);
 	const [urlSelectMode, setUrlSelectMode] = useState<null | { urls: string[]; resIdx: number }> (null);
+	const [hideDeletedRes, setHideDeletedRes] = useState(false);
 
 	// 板選択
 	const {
@@ -150,6 +151,9 @@ export default function App() {
 					}
 				}
 			}
+			else if (input === 'h') {
+				setHideDeletedRes(v => !v);
+			}
 		}
 		if (urlSelectMode) {
 			if (/^[1-9]$/.test(input)) {
@@ -205,6 +209,7 @@ export default function App() {
 					mediaThumbCache={mediaThumbCache}
 					scrollOffset={scrollOffset}
 					setScrollOffset={setScrollOffset}
+					hideDeletedRes={hideDeletedRes}
 				/>
 				{urlSelectMode && (
 					<UrlSelectModal

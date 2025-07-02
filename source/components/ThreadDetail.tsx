@@ -13,10 +13,11 @@ type Props = {
   mediaThumbCache: { [url: string]: string };
   scrollOffset: number;
   setScrollOffset: (offset: number) => void;
+  hideDeletedRes?: boolean;
   urlSelectMode?: UrlSelectMode;
 };
 
-export default function ThreadDetail({ responses, selected, resThumb, mediaThumbCache, scrollOffset, setScrollOffset, urlSelectMode }: Props) {
+export default function ThreadDetail({ responses, selected, resThumb, mediaThumbCache, scrollOffset, setScrollOffset, hideDeletedRes, urlSelectMode }: Props) {
   // スクロールオフセット調整
   React.useEffect(() => {
     if (selected < scrollOffset) {
@@ -26,7 +27,13 @@ export default function ThreadDetail({ responses, selected, resThumb, mediaThumb
     }
   }, [selected, scrollOffset, setScrollOffset]);
 
-  const visibleResponses = responses.slice(scrollOffset, scrollOffset + WINDOW_SIZE);
+  const filtered = hideDeletedRes
+    ? responses.filter(res =>
+        !(res.body.startsWith('書き込みをした人によって削除されました') ||
+          res.body.startsWith('スレッドを立てた人によって削除されました') ||
+          res.body.startsWith('削除依頼によって隔離されました')))
+    : responses;
+  const visibleResponses = filtered.slice(scrollOffset, scrollOffset + WINDOW_SIZE);
 
   return (
     <Box flexDirection="column">
@@ -41,6 +48,9 @@ export default function ThreadDetail({ responses, selected, resThumb, mediaThumb
       </Text>
       <Text color="yellow">
         全{responses.length}件中、{Math.min(scrollOffset + 1, responses.length)}〜{Math.min(scrollOffset + WINDOW_SIZE, responses.length)}件を表示中
+        {hideDeletedRes && (responses.length - filtered.length > 0) && (
+          `　${responses.length - filtered.length}件の非表示があります`
+        )}
       </Text>
       {responses.length === 0 ? (
         <Text color="yellow">レスが見つかりません</Text>
@@ -60,7 +70,11 @@ export default function ThreadDetail({ responses, selected, resThumb, mediaThumb
                 {res.rsc} {res.date} No.{res.num} {res.name} そうだね:{res.sod}
               </Text>
               {res.body.split('\n').map((line, i) =>
-                line.startsWith('>') ? (
+                line.startsWith('書き込みをした人によって削除されました') ||
+                line.startsWith('スレッドを立てた人によって削除されました') ||
+                line.startsWith('削除依頼によって隔離されました') ? (
+                  <Text key={i} color="red">{line}</Text>
+                ) : line.startsWith('>') ? (
                   <Text key={i} color="green">{line}</Text>
                 ) : (
                   <Text key={i}>{line}</Text>
