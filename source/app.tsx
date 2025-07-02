@@ -17,6 +17,8 @@ export default function App() {
 	const [screen, setScreen] = useState<Screen>('board');
 	const [sortMode, setSortMode] = useState(0);
 	const [threadId, setThreadId] = useState<string | null>(null);
+	const [scrollRowOffset, setScrollRowOffset] = useState(0);
+	const [scrollOffset, setScrollOffset] = useState(0);
 
 	// 板選択
 	const {
@@ -66,12 +68,14 @@ export default function App() {
 			} else if (input === 'r') {
 				// 再取得はuseThreadGridの依存で自動
 			} else if (input === 'b') {
+				setScrollRowOffset(0);
 				setScreen('board');
 			} else if (input === 'q') process.exit(0);
 			else if (key.return) {
 				const thread = threads[selectedThread];
 				if (thread) {
 					setThreadId(thread.id);
+					setScrollRowOffset(0);
 					setScreen('threadDetail');
 				}
 			}
@@ -80,6 +84,7 @@ export default function App() {
 			if (key.downArrow) setSelectedRes(prev => (prev + 1) % responses.length);
 			else if (key.upArrow) setSelectedRes(prev => (prev - 1 + responses.length) % responses.length);
 			else if (input === 'b') {
+				setScrollOffset(0);
 				setScreen('threadList');
 			} else if (input === 'q') process.exit(0);
 		}
@@ -103,6 +108,8 @@ export default function App() {
 				sortMode={sortMode}
 				sortModes={SORT_MODES}
 				thumbCache={thumbCache}
+				scrollRowOffset={scrollRowOffset}
+				setScrollRowOffset={setScrollRowOffset}
 			/>
 		);
 	}
@@ -115,6 +122,8 @@ export default function App() {
 				selected={selectedRes}
 				resThumb={resThumb}
 				mediaThumbCache={mediaThumbCache}
+				scrollOffset={scrollOffset}
+				setScrollOffset={setScrollOffset}
 			/>
 		);
 	}
