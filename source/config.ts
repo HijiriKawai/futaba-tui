@@ -28,6 +28,8 @@ const defaultConfig = {
     quoteModalCancelEnter: 'enter', // enter
     clearHistory: 'C', // 履歴クリア
     toggleHistoryAll: 'A', // 全履歴表示トグル
+    settings: 's', // 設定画面遷移
+    saveSettings: 'w', // 設定保存
   },
   helpText: {
     board: '板を選択してください（{up}{down}:移動 {enter}:決定 {quit}:終了）',

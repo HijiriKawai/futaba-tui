@@ -14,10 +14,12 @@ import UrlSelectModal from './components/UrlSelectModal.js';
 import QuoteModal from './components/QuoteModal.js';
 import type { HistoryItem } from './types/futaba.js';
 import HistoryList from './components/HistoryList.js';
-import config from './config.js';
+import SettingsEditor from './components/SettingsEditor.js';
 import { loadHistory, saveHistory } from './utils.js';
+import { useSettingsEditor } from './hooks/useSettingsEditor.js';
+import { loadConfig, saveConfig } from './utils/settings.js';
 
-type Screen = 'board' | 'threadList' | 'threadDetail' | 'historyList';
+type Screen = 'board' | 'threadList' | 'threadDetail' | 'historyList' | 'settings';
 
 export default function App() {
 	const [screen, setScreen] = useState<Screen>('board');
@@ -33,6 +35,10 @@ export default function App() {
 	const [history, setHistory] = useState<HistoryItem[]>(() => loadHistory());
 	const [selectedHistory, setSelectedHistory] = useState(0);
 	const [showAllHistory, setShowAllHistory] = useState(false);
+	const [configState, setConfigState] = useState(loadConfig());
+
+	// 設定画面用ロジックをフックで取得
+	const settings = useSettingsEditor(configState, setConfigState);
 
 	// 板選択
 	const {
@@ -63,6 +69,19 @@ export default function App() {
 		error: errorRes,
 	} = useThreadDetail(board?.url ?? '', threadId);
 
+	// 設定編集用の全項目リスト
+	const keyConfigKeys = Object.keys(configState.keyConfig);
+	const threadGridKeys = Object.keys(configState.threadGrid).map(k => `threadGrid.${k}`);
+	const threadDetailKeys = Object.keys(configState.threadDetail).map(k => `threadDetail.${k}`);
+	// 設定値取得
+	function getValue(key: string): string | number {
+		if (!key) return '';
+		if (keyConfigKeys.includes(key)) return configState.keyConfig[key] ?? '';
+		if (threadGridKeys.includes(key)) return configState.threadGrid[key.replace('threadGrid.', '')] ?? '';
+		if (threadDetailKeys.includes(key)) return configState.threadDetail[key.replace('threadDetail.', '')] ?? '';
+		return '';
+	}
+
 	// 全角→半角変換
 	function toHalfWidth(str: string) {
 		return str.replace(/[！-～]/g, s =>
@@ -71,7 +90,7 @@ export default function App() {
 	}
 
 	function isKey(input: string, key: any, configKey: string) {
-		const val = config.keyConfig[configKey];
+		const val = configState.keyConfig[configKey];
 		if (!val) return false;
 		// 特殊キー
 		if (val === 'up' && key.upArrow) return true;
@@ -95,8 +114,8 @@ export default function App() {
 		if (screen === 'threadList') {
 			if (isKey(input, key, 'left')) setSelectedThread(prev => (prev - 1 + threads.length) % threads.length);
 			else if (isKey(input, key, 'right')) setSelectedThread(prev => (prev + 1) % threads.length);
-			else if (isKey(input, key, 'up')) setSelectedThread(prev => (prev - config.threadGrid.cols + threads.length) % threads.length);
-			else if (isKey(input, key, 'down')) setSelectedThread(prev => (prev + config.threadGrid.cols) % threads.length);
+			else if (isKey(input, key, 'up')) setSelectedThread(prev => (prev - configState.threadGrid.cols + threads.length) % threads.length);
+			else if (isKey(input, key, 'down')) setSelectedThread(prev => (prev + configState.threadGrid.cols) % threads.length);
 			else if (isKey(input, key, 'sortPrev')) setSortMode(prev => (prev - 1 + SORT_MODES.length) % SORT_MODES.length);
 			else if (isKey(input, key, 'sortNext')) setSortMode(prev => (prev + 1) % SORT_MODES.length);
 			else if (isKey(input, key, 'reload')) setReloadTrigger(t => t + 1);
@@ -251,6 +270,60 @@ export default function App() {
 			else if (isKey(inputNorm, key, 'quit')) process.exit(0);
 			return;
 		}
+		if (isKey(input, key, 'settings')) {
+			setScreen('settings');
+			return;
+		}
+		if (screen === 'settings') {
+			if (settings.editing) return; // 編集中はTextInput側で処理
+			if (settings.keyInputMode) {
+				const k = settings.allKeys[settings.selected] ?? '';
+				if (k && settings.keyConfigKeys.includes(k)) {
+					let newConfig = { ...configState };
+					let val = input;
+					if (key.upArrow) val = 'up';
+					else if (key.downArrow) val = 'down';
+					else if (key.leftArrow) val = 'left';
+					else if (key.rightArrow) val = 'right';
+					else if (key.return) val = 'enter';
+					else if (key.escape) {
+						settings.setKeyInputMode(false);
+						settings.setMessage('キャンセルしました');
+						return;
+					}
+					newConfig = {
+						...newConfig,
+						keyConfig: { ...newConfig.keyConfig, [k]: val },
+					};
+					setConfigState(newConfig);
+					settings.setKeyInputMode(false);
+					settings.setMessage('変更を反映しました（wで保存）');
+				}
+				return;
+			}
+			if (key.upArrow) {
+				settings.setSelected(prev => (prev - 1 + settings.allKeys.length) % settings.allKeys.length);
+			} else if (key.downArrow) {
+				settings.setSelected(prev => (prev + 1) % settings.allKeys.length);
+			} else if (key.return) {
+				const k = settings.allKeys[settings.selected] ?? '';
+				if (k && settings.keyConfigKeys.includes(k)) {
+					settings.setKeyInputMode(true);
+					settings.setMessage('割り当てたいキーを押してください（Escでキャンセル）');
+				} else if (k) {
+					settings.setEditing(true);
+					settings.setEditValue(String(getValue(k)));
+					settings.setMessage('');
+				}
+			} else if (input === configState.keyConfig.saveSettings) {
+				saveConfig(configState);
+				setConfigState(loadConfig());
+				settings.setMessage('保存しました');
+			} else if (input === configState.keyConfig.quit || key.escape) {
+				setScreen('board');
+				settings.setMessage('');
+			}
+		}
 	});
 
 	// ThreadDetailを開くたびに履歴を追加
@@ -285,6 +358,13 @@ export default function App() {
 		saveHistory(history);
 	}, [history]);
 
+	function handleEditValueChange(val: string) {
+		settings.setEditValue(val);
+	}
+	function handleEditSubmit(val: string) {
+		settings.submitEditValue(val);
+	}
+
 	if (screen === 'board') {
 		return (
 			<BoardSelector
@@ -305,6 +385,8 @@ export default function App() {
 				thumbCache={thumbCache}
 				scrollRowOffset={scrollRowOffset}
 				setScrollRowOffset={setScrollRowOffset}
+				cols={configState.threadGrid.cols}
+				rows={configState.threadGrid.rows}
 			/>
 		);
 	}
@@ -368,6 +450,21 @@ export default function App() {
 				history={history}
 				selectedHistory={selectedHistory}
 				showAll={showAllHistory}
+			/>
+		);
+	}
+	if (screen === 'settings') {
+		return (
+			<SettingsEditor
+				selected={settings.selected}
+				editing={settings.editing}
+				editValue={settings.editValue}
+				message={settings.message}
+				keyConfigKeys={settings.keyConfigKeys}
+				allKeys={settings.allKeys}
+				getValue={getValue}
+				onEditValueChange={handleEditValueChange}
+				onEditSubmit={handleEditSubmit}
 			/>
 		);
 	}

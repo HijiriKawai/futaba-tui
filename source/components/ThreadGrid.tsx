@@ -3,9 +3,6 @@ import { Box, Text } from 'ink';
 import type { Thread, SortMode } from '../types/futaba.js';
 import config, { generateHelpText } from '../config.js';
 
-const COLS = config.threadGrid.cols;
-const ROWS = config.threadGrid.rows;
-
 type Props = {
   threads: Thread[];
   selected: number;
@@ -14,13 +11,15 @@ type Props = {
   thumbCache: { [imgFile: string]: string };
   scrollRowOffset: number;
   setScrollRowOffset: (offset: number) => void;
+  cols: number;
+  rows: number;
 };
 
-export default function ThreadGrid({ threads, selected, sortMode, sortModes, thumbCache, scrollRowOffset, setScrollRowOffset }: Props) {
-  const totalRows = Math.ceil(threads.length / COLS);
-  const visibleRows = ROWS;
-  const selectedRow = Math.floor(selected / COLS);
-  const selectedCol = selected % COLS;
+const ThreadGrid: React.FC<Props> = ({ threads, selected, sortMode, sortModes, thumbCache, scrollRowOffset, setScrollRowOffset, cols, rows }) => {
+  const totalRows = Math.ceil(threads.length / cols);
+  const visibleRows = rows;
+  const selectedRow = Math.floor(selected / cols);
+  const selectedCol = selected % cols;
 
   React.useEffect(() => {
     if (selectedRow < scrollRowOffset) {
@@ -33,8 +32,8 @@ export default function ThreadGrid({ threads, selected, sortMode, sortModes, thu
   const grid: (Thread | undefined)[][] = [];
   for (let r = scrollRowOffset; r < Math.min(scrollRowOffset + visibleRows, totalRows); r++) {
     const row: (Thread | undefined)[] = [];
-    for (let c = 0; c < COLS; c++) {
-      const idx = r * COLS + c;
+    for (let c = 0; c < cols; c++) {
+      const idx = r * cols + c;
       if (idx < threads.length) row.push(threads[idx]);
       else row.push(undefined);
     }
@@ -51,8 +50,8 @@ export default function ThreadGrid({ threads, selected, sortMode, sortModes, thu
 			</Text>
 			<Text color="yellow">
 				全{threads.length}件中、
-				{Math.min(scrollRowOffset * COLS + 1, threads.length)}〜
-				{Math.min((scrollRowOffset + ROWS) * COLS, threads.length)}件を表示中
+				{Math.min(scrollRowOffset * cols + 1, threads.length)}〜
+				{Math.min((scrollRowOffset + rows) * cols, threads.length)}件を表示中
 			</Text>
 			<Text color="magenta">
 				現在のソート: {sortModes[sortMode]?.name ?? ''}
@@ -102,4 +101,6 @@ export default function ThreadGrid({ threads, selected, sortMode, sortModes, thu
 			))}
 		</Box>
 	);
-}
+};
+
+export default ThreadGrid;
