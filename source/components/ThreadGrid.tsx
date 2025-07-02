@@ -3,7 +3,7 @@ import { Box, Text } from 'ink';
 import type { Thread, SortMode } from '../types/futaba.js';
 
 const COLS = 5;
-const ROWS = 2;
+const ROWS = 3;
 
 type Props = {
   threads: Thread[];
