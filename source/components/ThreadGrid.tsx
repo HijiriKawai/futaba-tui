@@ -45,6 +45,9 @@ export default function ThreadGrid({ threads, selected, sortMode, sortModes, thu
       <Text color="cyan">
         スレッド一覧（↑↓←→で移動、Enterで詳細、bで板選択、qで終了、[と]でソート、rでリロード）
       </Text>
+      <Text color="yellow">
+        全{threads.length}件中、{Math.min(scrollRowOffset * COLS + 1, threads.length)}〜{Math.min((scrollRowOffset + ROWS) * COLS, threads.length)}件を表示中
+      </Text>
       <Text color="magenta">現在のソート: {sortModes[sortMode]?.name ?? ''}</Text>
       {grid.map((row, rIdx) => (
         <Box key={rIdx}>
