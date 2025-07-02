@@ -41,46 +41,58 @@ export default function ThreadGrid({ threads, selected, sortMode, sortModes, thu
   }
 
   return (
-    <Box flexDirection="column">
-      <Text color="cyan">
-        スレッド一覧（↑↓←→で移動、Enterで詳細、bで板選択、qで終了、[と]でソート、rでリロード）
-      </Text>
-      <Text color="yellow">
-        全{threads.length}件中、{Math.min(scrollRowOffset * COLS + 1, threads.length)}〜{Math.min((scrollRowOffset + ROWS) * COLS, threads.length)}件を表示中
-      </Text>
-      <Text color="magenta">現在のソート: {sortModes[sortMode]?.name ?? ''}</Text>
-      {grid.map((row, rIdx) => (
-        <Box key={rIdx}>
-          {row.map((thread, cIdx) => {
-            const isSelected = (selectedRow - scrollRowOffset) === rIdx && selectedCol === cIdx;
-            const imgFile = thread?.imgUrl ? thread.imgUrl.split('/').pop() : '';
-            return (
-              <Box
-                key={cIdx}
-                flexDirection="column"
-                borderStyle="round"
-                borderColor={isSelected ? 'blue' : 'white'}
-                paddingX={1}
-                paddingY={0}
-                marginRight={1}
-                marginBottom={1}
-              >
-                {thread ? (
-                  <>
-                    {thread.imgUrl && imgFile && thumbCache[imgFile] && (
-                      <Text>{thumbCache[imgFile]}</Text>
-                    )}
-                    <Text color="gray">{thread.id}</Text>
-                    <Text color={isSelected ? 'white' : undefined} backgroundColor={isSelected ? 'blue' : undefined}>{thread.title}</Text>
-                  </>
-                ) : (
-                  <Text> </Text>
-                )}
-              </Box>
-            );
-          })}
-        </Box>
-      ))}
-    </Box>
-  );
+		<Box flexDirection="column">
+			<Text color="cyan">
+				スレッド一覧（↑↓←→で移動、Enterで詳細、bで板選択、qで終了、[と]でソート、rでリロード、oで画像表示(外部アプリ)）
+			</Text>
+			<Text color="yellow">
+				全{threads.length}件中、
+				{Math.min(scrollRowOffset * COLS + 1, threads.length)}〜
+				{Math.min((scrollRowOffset + ROWS) * COLS, threads.length)}件を表示中
+			</Text>
+			<Text color="magenta">
+				現在のソート: {sortModes[sortMode]?.name ?? ''}
+			</Text>
+			{grid.map((row, rIdx) => (
+				<Box key={rIdx}>
+					{row.map((thread, cIdx) => {
+						const isSelected =
+							selectedRow - scrollRowOffset === rIdx && selectedCol === cIdx;
+						const imgFile = thread?.imgUrl
+							? thread.imgUrl.split('/').pop()
+							: '';
+						return (
+							<Box
+								key={cIdx}
+								flexDirection="column"
+								borderStyle="round"
+								borderColor={isSelected ? 'blue' : 'white'}
+								paddingX={1}
+								paddingY={0}
+								marginRight={1}
+								marginBottom={1}
+							>
+								{thread ? (
+									<>
+										{thread.imgUrl && imgFile && thumbCache[imgFile] && (
+											<Text>{thumbCache[imgFile]}</Text>
+										)}
+										<Text color="gray">{thread.id}</Text>
+										<Text
+											color={isSelected ? 'white' : undefined}
+											backgroundColor={isSelected ? 'blue' : undefined}
+										>
+											{thread.title}
+										</Text>
+									</>
+								) : (
+									<Text> </Text>
+								)}
+							</Box>
+						);
+					})}
+				</Box>
+			))}
+		</Box>
+	);
 }
