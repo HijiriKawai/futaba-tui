@@ -26,12 +26,14 @@ const defaultConfig = {
     quoteModalCancel: 'q', // 引用モーダルキャンセル
     quoteModalCancelEsc: 'escape', // esc
     quoteModalCancelEnter: 'enter', // enter
+    clearHistory: 'C', // 履歴クリア
+    toggleHistoryAll: 'A', // 全履歴表示トグル
   },
   helpText: {
     board: '板を選択してください（{up}{down}:移動 {enter}:決定 {quit}:終了）',
     threadList: 'スレッド一覧（{up}{down}{left}{right}:移動 {enter}:詳細 {back}:板選択 {reload}:リロード {openImage}:画像 {sortPrev}{sortNext}:ソート {history}:履歴 {quit}:終了）',
     threadDetail: 'レス一覧（{up}{down}:移動 {back}:戻る {reload}:リロード {openImage}:画像 {openLink}:リンク {toggleDeleted}:削除非表示 {history}:履歴 {quit}:終了）',
-    historyList: '履歴一覧（{up}{down}:移動 {enter}:開く {back}:戻る {quit}:終了）',
+    historyList: '履歴一覧（{up}{down}:移動 {enter}:開く {back}:戻る {quit}:終了 {clearHistory}:クリア {toggleHistoryAll}:全表示）',
     urlSelectModal: 'URLを選択してください（数字:選択 {urlSelectCancel}/{urlSelectCancelEsc}:キャンセル）',
     quoteModal: '数字:ジャンプ {quoteModalCancel}/{quoteModalCancelEsc}/{quoteModalCancelEnter}:閉じる',
   },

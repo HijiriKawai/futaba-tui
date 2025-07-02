@@ -52,7 +52,9 @@ npm install --global futaba-tui
     "urlSelectCancelEsc": "escape", // esc
     "quoteModalCancel": "q", // 引用モーダルキャンセル
     "quoteModalCancelEsc": "escape", // esc
-    "quoteModalCancelEnter": "enter" // enter
+    "quoteModalCancelEnter": "enter", // enter
+    "clearHistory": "C", // 履歴クリア
+    "toggleHistoryAll": "A" // 全履歴表示トグル
   },
   "threadGrid": {
     "cols": 5,   // スレッド一覧の列数
@@ -88,7 +90,15 @@ npm install --global futaba-tui
     "urlSelectCancelEsc": "escape",
     "quoteModalCancel": "q",
     "quoteModalCancelEsc": "escape",
-    "quoteModalCancelEnter": "z"
+    "quoteModalCancelEnter": "z",
+    "clearHistory": "C",
+    "toggleHistoryAll": "A"
   }
 }
 ```
+
+### 設定可能な項目
+
+- `keyConfig`: すべての操作キー（上下左右・決定・戻る・終了・画像・リンク・ソート・履歴・削除非表示・引用ジャンプ・モーダルキャンセル・履歴クリア・全履歴表示トグル等）
+- `threadGrid.cols`/`rows`: スレッド一覧の表示列数・行数
+- `threadDetail.windowSize`: レス一覧のウィンドウサイズ

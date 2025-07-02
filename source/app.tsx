@@ -32,6 +32,7 @@ export default function App() {
 	const [quoteModal, setQuoteModal] = useState<{res?: any, message?: string} | null>(null);
 	const [history, setHistory] = useState<HistoryItem[]>(() => loadHistory());
 	const [selectedHistory, setSelectedHistory] = useState(0);
+	const [showAllHistory, setShowAllHistory] = useState(false);
 
 	// 板選択
 	const {
@@ -239,6 +240,14 @@ export default function App() {
 					setScreen('threadDetail');
 				}
 			}
+			else if (isKey(inputNorm, key, 'clearHistory')) {
+				setHistory([]);
+				setSelectedHistory(0);
+			}
+			else if (isKey(inputNorm, key, 'toggleHistoryAll')) {
+				setShowAllHistory(v => !v);
+				setSelectedHistory(0);
+			}
 			else if (isKey(inputNorm, key, 'quit')) process.exit(0);
 			return;
 		}
@@ -358,7 +367,7 @@ export default function App() {
 			<HistoryList
 				history={history}
 				selectedHistory={selectedHistory}
-				setSelectedHistory={setSelectedHistory}
+				showAll={showAllHistory}
 			/>
 		);
 	}
