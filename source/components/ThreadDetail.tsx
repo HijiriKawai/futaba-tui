@@ -48,7 +48,13 @@ export default function ThreadDetail({ responses, selected, resThumb, mediaThumb
               <Text>
                 {res.rsc} {res.date} No.{res.num} {res.name} そうだね:{res.sod}
               </Text>
-              <Text>{res.body}</Text>
+              {res.body.split('\n').map((line, i) =>
+                line.startsWith('>') ? (
+                  <Text key={i} color="green">{line}</Text>
+                ) : (
+                  <Text key={i}>{line}</Text>
+                )
+              )}
               {/* 画像・動画表示 */}
               {res.mediaUrls && res.mediaUrls.map((url, i) => {
                 if (/\.(jpg|png|gif)$/i.test(url)) {

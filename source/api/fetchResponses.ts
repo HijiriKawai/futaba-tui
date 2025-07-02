@@ -25,7 +25,10 @@ export async function fetchResponses(boardUrl: string, threadId: string): Promis
     const num = threDiv.find('.cno').first().text().replace('No.', '');
     const name = '';
     const date = threDiv.find('.cnw').first().text();
-    const body = threDiv.find('blockquote').first().text();
+    const block = threDiv.find('blockquote').first();
+    let bodyHtml = block.length > 0 ? block.html() : '';
+    let body = (bodyHtml ?? '').replace(/<br\s*\/?\>/gi, '\n');
+    body = cheerio.load(body).text();
 		const rsc = "0";
     const sodText = threDiv.find('.sod').first().text();
     const sodMatch = sodText.match(/そうだねx(\d+)/);
@@ -62,7 +65,10 @@ export async function fetchResponses(boardUrl: string, threadId: string): Promis
       const num = td.find('.cno').text().replace('No.', '');
       const name = '';
       const date = td.find('.cnw').text();
-      const body = td.find('blockquote').text();
+      const block = td.find('blockquote');
+      let bodyHtml = block.length > 0 ? block.html() : '';
+      let body = (bodyHtml ?? '').replace(/<br\s*\/?\>/gi, '\n');
+      body = cheerio.load(body).text();
       const rsc = td.find('.rsc').text();
       const sodText = td.find('.sod').text();
       const sodMatch = sodText.match(/そうだねx(\d+)/);
