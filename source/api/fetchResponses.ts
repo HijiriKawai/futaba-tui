@@ -23,6 +23,13 @@ export async function fetchResponses(boardUrl: string, threadId: string): Promis
     const sod = sodMatch ? sodMatch[1] : '0';
     // body内のf/fuで始まる画像・動画ファイル名を抽出
     const mediaUrls = [];
+    // スレ画サムネ画像URLをmediaUrlsの先頭に追加
+    if (imgUrl) {
+      const imgFile = imgUrl.split('/').pop();
+      if (imgFile) {
+        mediaUrls.push(boardUrl.replace(/\/$/, '') + '/src/' + imgFile);
+      }
+    }
     const fileRegex = /\b(fu?\d+\.(?:jpg|png|gif|webm|mp4))\b/gi;
     let match;
     while ((match = fileRegex.exec(body)) !== null) {
@@ -33,8 +40,6 @@ export async function fetchResponses(boardUrl: string, threadId: string): Promis
         url = 'https://dec.2chan.net/up2/src/' + fname;
       } else if (fname.startsWith('f')) {
         url = 'https://dec.2chan.net/up/src/' + fname;
-      } else {
-        url = boardUrl.replace(/\/$/, '') + '/src/' + fname;
       }
       mediaUrls.push(url);
     }
