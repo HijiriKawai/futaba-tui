@@ -68,7 +68,7 @@ export default function ThreadDetail({ responses, selected, resThumb, mediaThumb
               )}
               {/* 画像・動画表示 */}
               {res.mediaUrls && res.mediaUrls.map((url, i) => {
-                if (/\.(jpg|png|gif)$/i.test(url)) {
+                if (/\.(jpe?g|png|gif)$/i.test(url)) {
                   if (mediaThumbCache[url]) {
                     return <Text key={i}>{mediaThumbCache[url]}</Text>;
                   } else {

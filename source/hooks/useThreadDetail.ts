@@ -51,7 +51,7 @@ export function useThreadDetail(boardUrl: string, threadId: string | null) {
       for (const res of responses) {
         if (res.mediaUrls) {
           for (const url of res.mediaUrls) {
-            if (/\.(jpg|png|gif)$/i.test(url) && !mediaThumbCache[url]) {
+            if (/\.(jpe?g|png|gif)$/i.test(url) && !mediaThumbCache[url]) {
               try {
                 const buffer = await (await fetch(url, { method: 'GET' })).arrayBuffer();
                 const img = await terminalImage.buffer(Buffer.from(buffer),

@@ -84,13 +84,22 @@ export default function App() {
 					setScreen('threadDetail');
 				}
 			} else if (input === 'o') {
-				const thread = threads[selectedThread];
-				if (thread && thread.imgUrl) {
+				const res = responses[selectedRes];
+				let imgs: string[] = [];
+				if (res?.imgUrl) imgs.push(res.imgUrl);
+				if (res?.mediaUrls) {
+					imgs = imgs.concat(res.mediaUrls.filter(url => /\.(jpe?g|png|gif)$/i.test(url)));
+				}
+				imgs = Array.from(new Set(imgs)); // 重複除去
+				if (imgs.length === 1) {
+					const img = imgs[0];
 					let cmd = '';
-					if (process.platform === 'darwin') cmd = `open "${thread.imgUrl}"`;
-					else if (process.platform === 'win32') cmd = `start "" "${thread.imgUrl}"`;
-					else cmd = `xdg-open "${thread.imgUrl}"`;
+					if (process.platform === 'darwin') cmd = `open \"${img}\"`;
+					else if (process.platform === 'win32') cmd = `start \"\" \"${img}\"`;
+					else cmd = `xdg-open \"${img}\"`;
 					exec(cmd);
+				} else if (imgs.length > 1) {
+					setUrlSelectMode({ urls: imgs, resIdx: selectedRes });
 				}
 			}
 		}
@@ -103,16 +112,21 @@ export default function App() {
 			} else if (input === 'q') process.exit(0);
 			else if (input === 'o') {
 				const res = responses[selectedRes];
-				let img = res?.imgUrl;
-				if (!img && res?.mediaUrls) {
-					img = res.mediaUrls.find(url => /\.(jpg|png|gif)$/i.test(url));
+				let imgs: string[] = [];
+				if (res?.imgUrl) imgs.push(res.imgUrl);
+				if (res?.mediaUrls) {
+					imgs = imgs.concat(res.mediaUrls.filter(url => /\.(jpe?g|png|gif)$/i.test(url)));
 				}
-				if (img) {
+				imgs = Array.from(new Set(imgs)); // 重複除去
+				if (imgs.length === 1) {
+					const img = imgs[0];
 					let cmd = '';
-					if (process.platform === 'darwin') cmd = `open "${img}"`;
-					else if (process.platform === 'win32') cmd = `start "" "${img}"`;
-					else cmd = `xdg-open "${img}"`;
+					if (process.platform === 'darwin') cmd = `open \"${img}\"`;
+					else if (process.platform === 'win32') cmd = `start \"\" \"${img}\"`;
+					else cmd = `xdg-open \"${img}\"`;
 					exec(cmd);
+				} else if (imgs.length > 1) {
+					setUrlSelectMode({ urls: imgs, resIdx: selectedRes });
 				}
 			}
 			else if (input === 'r') {
