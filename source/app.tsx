@@ -190,6 +190,24 @@ export default function App() {
 					}
 				}
 			}
+			// 引用モーダル表示中はq/esc/Enterで閉じる、数字キーでジャンプ
+			if (quoteModal) {
+				if (/^[1-9]$/.test(input) && quoteModal.res && Array.isArray(quoteModal.res) && quoteModal.res.length > 0) {
+					const idx = parseInt(input, 10) - 1;
+					const res = quoteModal.res[idx];
+					if (res) {
+						const origIdx = responses.indexOf(res);
+						if (origIdx !== -1) setSelectedRes(origIdx);
+					}
+					setQuoteModal(null);
+					return;
+				}
+				if (input === 'q' || key.escape || key.return) {
+					setQuoteModal(null);
+					return;
+				}
+				return;
+			}
 		}
 		if (urlSelectMode) {
 			if (/^[1-9]$/.test(input)) {
@@ -205,13 +223,6 @@ export default function App() {
 				setUrlSelectMode(null);
 			} else if (input === 'q' || key.escape) {
 				setUrlSelectMode(null);
-			}
-			return;
-		}
-		// 引用モーダル表示中はq/esc/Enterで閉じる
-		if (quoteModal) {
-			if (input === 'q' || key.escape || key.return) {
-				setQuoteModal(null);
 			}
 			return;
 		}
@@ -245,9 +256,6 @@ export default function App() {
 		if (errorRes) return <Text color="red">{errorRes}</Text>;
 		return (
 			<>
-				{quoteModal && (
-					<QuoteModal res={quoteModal.res} message={quoteModal.message} onClose={() => setQuoteModal(null)} />
-				)}
 				<ThreadDetail
 					responses={responses}
 					selected={selectedRes}
@@ -275,6 +283,23 @@ export default function App() {
 							setUrlSelectMode(null);
 						}}
 						onCancel={() => setUrlSelectMode(null)}
+					/>
+				)}
+				{quoteModal && (
+					<QuoteModal
+						res={quoteModal.res}
+						message={quoteModal.message}
+						onClose={() => setQuoteModal(null)}
+						onSelect={idx => {
+							if (quoteModal.res && Array.isArray(quoteModal.res)) {
+								const res = quoteModal.res[idx];
+								if (res) {
+									const origIdx = responses.indexOf(res);
+									if (origIdx !== -1) setSelectedRes(origIdx);
+								}
+								setQuoteModal(null);
+							}
+						}}
 					/>
 				)}
 			</>
