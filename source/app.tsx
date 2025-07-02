@@ -177,7 +177,7 @@ export default function App() {
 					}
 				}
 			}
-			else if (input === 'h') {
+			else if (input === 'x') {
 				setHideDeletedRes(v => !v);
 			}
 			else if (input === 'c') {
