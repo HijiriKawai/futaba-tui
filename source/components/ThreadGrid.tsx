@@ -71,6 +71,9 @@ export default function ThreadGrid({ threads, selected, sortMode, sortModes, thu
 								paddingY={0}
 								marginRight={1}
 								marginBottom={1}
+								minWidth={35}
+								alignItems="center"
+								justifyContent="center"
 							>
 								{thread ? (
 									<>
