@@ -58,7 +58,15 @@ export default function App() {
 		error: errorRes,
 	} = useThreadDetail(board?.url ?? '', threadId);
 
+	// 全角→半角変換
+	function toHalfWidth(str: string) {
+		return str.replace(/[！-～]/g, s =>
+			String.fromCharCode(s.charCodeAt(0) - 0xfee0)
+		).replace(/　/g, ' ');
+	}
+
 	useInput((input, key) => {
+		const inputNorm = input ? toHalfWidth(input) : input;
 		if (screen === 'board') {
 			if (key.downArrow) setSelectedBoard(prev => (prev + 1) % boards.length);
 			else if (key.upArrow) setSelectedBoard(prev => (prev - 1 + boards.length) % boards.length);
@@ -106,9 +114,9 @@ export default function App() {
 					setUrlSelectMode({ urls: imgs, resIdx: selectedRes });
 				}
 			}
-			// 数字キーでソートモードを直接選択
-			if (/^[1-9]$/.test(input)) {
-				const idx = parseInt(input, 10) - 1;
+			// 数字キーでソートモードを直接選択（全角対応）
+			if (/^[1-9]$/.test(inputNorm)) {
+				const idx = parseInt(inputNorm, 10) - 1;
 				if (idx >= 0 && idx < SORT_MODES.length) {
 					setSortMode(idx);
 				}
@@ -199,8 +207,8 @@ export default function App() {
 			}
 			// 引用モーダル表示中はq/esc/Enterで閉じる、数字キーでジャンプ
 			if (quoteModal) {
-				if (/^[1-9]$/.test(input) && quoteModal.res && Array.isArray(quoteModal.res) && quoteModal.res.length > 0) {
-					const idx = parseInt(input, 10) - 1;
+				if (/^[1-9]$/.test(inputNorm) && quoteModal.res && Array.isArray(quoteModal.res) && quoteModal.res.length > 0) {
+					const idx = parseInt(inputNorm, 10) - 1;
 					const res = quoteModal.res[idx];
 					if (res) {
 						const origIdx = responses.indexOf(res);
@@ -217,8 +225,8 @@ export default function App() {
 			}
 		}
 		if (urlSelectMode) {
-			if (/^[1-9]$/.test(input)) {
-				const idx = parseInt(input, 10) - 1;
+			if (/^[1-9]$/.test(inputNorm)) {
+				const idx = parseInt(inputNorm, 10) - 1;
 				const url = urlSelectMode.urls[idx];
 				if (url) {
 					let cmd = '';
