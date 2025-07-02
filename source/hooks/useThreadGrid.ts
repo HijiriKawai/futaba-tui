@@ -25,13 +25,14 @@ export function useThreadGrid(boardUrl: string, sortMode: number) {
           const imgFile = thread.imgUrl.split('/').pop() || thread.id;
           if (!thumbCache[imgFile]) {
             try {
-              const buffer = await (await fetch(boardUrl + 'cat/' + imgFile, { method: 'GET' })).arrayBuffer();
+              const imgUrl = boardUrl + 'cat/' + imgFile;
+              const buffer = await (await fetch(imgUrl, { method: 'GET' })).arrayBuffer();
               const img = await terminalImage.buffer(Buffer.from(buffer),
                 { width: '15%', height: '15%', preserveAspectRatio: true }
               );
               return { imgFile, img };
             } catch {
-              return { imgFile, img: '' };
+              return { imgFile, img: ''};
             }
           }
         }

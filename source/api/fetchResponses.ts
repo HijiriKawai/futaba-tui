@@ -12,7 +12,16 @@ export async function fetchResponses(boardUrl: string, threadId: string): Promis
   const threDiv = $('.thre');
   if (threDiv.length > 0) {
     const imgA = threDiv.find('a[href$=".jpg"],a[href$=".png"],a[href$=".gif"]').first();
-    const imgUrl = imgA.length > 0 ? boardUrl.replace(/\/$/, '') + imgA.attr('href') : undefined;
+    let imgUrl: string | undefined = undefined;
+    if (imgA.length > 0) {
+      const href = imgA.attr('href');
+      if (href) {
+        const imgFile = href.split('/').pop();
+        if (imgFile) {
+          imgUrl = boardUrl.replace(/\/$/, '') + '/src/' + imgFile;
+        }
+      }
+    }
     const num = threDiv.find('.cno').first().text().replace('No.', '');
     const name = '';
     const date = threDiv.find('.cnw').first().text();
@@ -40,7 +49,7 @@ export async function fetchResponses(boardUrl: string, threadId: string): Promis
         url = 'https://dec.2chan.net/up2/src/' + fname;
       } else if (fname.startsWith('f')) {
         url = 'https://dec.2chan.net/up/src/' + fname;
-      }
+			}
       mediaUrls.push(url);
     }
     resList.push({ num, name, date, body, imgUrl, rsc, sod, mediaUrls });

@@ -8,6 +8,8 @@ import { useBoardSelector } from './hooks/useBoardSelector.js';
 import { useThreadGrid } from './hooks/useThreadGrid.js';
 import { useThreadDetail } from './hooks/useThreadDetail.js';
 import { Text } from 'ink';
+import { exec } from 'child_process';
+import process from 'process';
 
 const COLS = 5;
 
@@ -78,6 +80,15 @@ export default function App() {
 					setScrollRowOffset(0);
 					setScreen('threadDetail');
 				}
+			} else if (input === 'o') {
+				const thread = threads[selectedThread];
+				if (thread && thread.imgUrl) {
+					let cmd = '';
+					if (process.platform === 'darwin') cmd = `open "${thread.imgUrl}"`;
+					else if (process.platform === 'win32') cmd = `start "" "${thread.imgUrl}"`;
+					else cmd = `xdg-open "${thread.imgUrl}"`;
+					exec(cmd);
+				}
 			}
 		}
 		if (screen === 'threadDetail') {
@@ -87,6 +98,20 @@ export default function App() {
 				setScrollOffset(0);
 				setScreen('threadList');
 			} else if (input === 'q') process.exit(0);
+			else if (input === 'o') {
+				const res = responses[selectedRes];
+				let img = res?.imgUrl;
+				if (!img && res?.mediaUrls) {
+					img = res.mediaUrls.find(url => /\.(jpg|png|gif)$/i.test(url));
+				}
+				if (img) {
+					let cmd = '';
+					if (process.platform === 'darwin') cmd = `open "${img}"`;
+					else if (process.platform === 'win32') cmd = `start "" "${img}"`;
+					else cmd = `xdg-open "${img}"`;
+					exec(cmd);
+				}
+			}
 		}
 	});
 

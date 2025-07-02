@@ -17,11 +17,13 @@ export async function fetchThreads(boardUrl: string, sortIdx: number): Promise<T
       const imgTag = $(td).find('img');
       const imgSrc = imgTag.attr('src');
       const hasImage = !!imgSrc;
-      const imgUrl = hasImage
-        ? imgSrc?.startsWith('http')
-          ? imgSrc
-          : boardUrl.replace(/\/$/, '') + imgSrc
-        : undefined;
+      let imgUrl: string | undefined = undefined;
+      if (hasImage && imgSrc) {
+        const imgFile = imgSrc.split('/').pop();
+        if (imgFile) {
+          imgUrl = boardUrl.replace(/\/$/, '') + '/cat/' + imgFile;
+        }
+      }
       threadList.push({ id, title: `レス数:${resCount}`, imgUrl });
     }
   });
