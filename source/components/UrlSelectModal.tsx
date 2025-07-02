@@ -19,7 +19,7 @@ export default function UrlSelectModal({ urls }: Props) {
         minWidth={40}
         alignItems="flex-start"
       >
-        <Text color="yellow">URLを選択してください（1〜{urls.length}、q/escでキャンセル）</Text>
+        <Text color="yellow">URLを選択してください（数字:選択 q/esc:キャンセル）</Text>
         {urls.map((url, i) => (
           <Text key={i} color="cyan">{i + 1}: {url}</Text>
         ))}

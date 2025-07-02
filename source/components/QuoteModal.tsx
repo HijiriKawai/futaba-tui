@@ -43,7 +43,7 @@ export default function QuoteModal({ res, message }: Props) {
         ) : (
           <Text color="red">{message ?? '引用元が見つかりません'}</Text>
         )}
-        <Text color="gray">q/esc/Enterで閉じる</Text>
+        <Text color="gray">q/esc/Enter:閉じる</Text>
       </Box>
     </Box>
   );

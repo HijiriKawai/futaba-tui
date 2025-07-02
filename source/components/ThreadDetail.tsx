@@ -40,10 +40,10 @@ export default function ThreadDetail({ responses, selected, resThumb, mediaThumb
       <Text color="cyan">
         {(() => {
           const firstBody = responses[0]?.body;
-          if (!firstBody) return 'レス一覧（↑↓で移動、bでスレ一覧に戻る、rでリロード、oで画像表示(外部アプリ)、lでリンク先を表示、hで削除文を非表示、qで終了）';
+          if (!firstBody) return 'レス一覧（↑↓:移動 b:戻る r:リロード o:画像 l:リンク h:削除非表示 c:引用元 q:終了）';
           const first = firstBody.replace(/\n/g, '');
           const head = first.length > 10 ? first.slice(0, 10) + '…' : first;
-          return `${head}（レス一覧（↑↓で移動、bでスレ一覧に戻る、rでリロード、oで画像表示(外部アプリ)、lでリンク先を表示、hで削除文を非表示、qで終了）'`;
+          return `${head}（↑↓:移動 b:戻る r:リロード o:画像 l:リンク h:削除非表示 c:引用元 q:終了）`;
         })()}
       </Text>
       <Text color="yellow">

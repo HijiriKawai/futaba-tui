@@ -10,7 +10,7 @@ type Props = {
 export default function BoardSelector({ boards, selected }: Props) {
   return (
     <Box flexDirection="column">
-      <Text color="cyan">板を選択してください（↑↓で移動、Enterで決定、qで終了）</Text>
+      <Text color="cyan">板を選択してください（↑↓:移動 Enter:決定 q:終了）</Text>
       {boards.map((board, idx) => (
         <Text
           key={board.key}

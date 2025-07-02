@@ -43,7 +43,7 @@ export default function ThreadGrid({ threads, selected, sortMode, sortModes, thu
   return (
 		<Box flexDirection="column">
 			<Text color="cyan">
-				スレッド一覧（↑↓←→で移動、Enterで詳細、bで板選択、qで終了、[と]でソート、rでリロード、oで画像表示(外部アプリ)）
+				スレッド一覧（↑↓←→:移動 Enter:詳細 b:板選択 r:リロード o:画像 [ ]:ソート q:終了）
 			</Text>
 			<Text color="yellow">
 				全{threads.length}件中、
