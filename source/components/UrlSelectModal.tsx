@@ -10,21 +10,30 @@ type Props = {
 
 export default function UrlSelectModal({ urls }: Props) {
   return (
-    <Box flexDirection="column" alignItems="center" justifyContent="center">
-      <Box
-        flexDirection="column"
-        borderStyle="round"
-        borderColor="yellow"
-        paddingX={2}
-        paddingY={1}
-        minWidth={40}
-        alignItems="flex-start"
-      >
-        <Text color="yellow">{generateHelpText(config.helpText.urlSelectModal, config.keyConfig)}</Text>
-        {urls.map((url, i) => (
-          <Text key={i} color="cyan">{i + 1}: {url}</Text>
-        ))}
-      </Box>
-    </Box>
-  );
+		<Box
+			flexDirection="column"
+			alignItems="center"
+			justifyContent="center"
+			width="100%"
+			height="100%"
+		>
+			<Box
+				flexDirection="column"
+				borderStyle="round"
+				borderColor="yellow"
+				alignItems="flex-start"
+				width="100%"
+				height="100%"
+			>
+				<Text color="yellow" backgroundColor="gray">
+					{generateHelpText(config.helpText.urlSelectModal, config.keyConfig)}
+				</Text>
+				{urls.map((url, i) => (
+					<Text key={i} color="cyan" backgroundColor="gray">
+						{i + 1}: {url}
+					</Text>
+				))}
+			</Box>
+		</Box>
+	);
 }

@@ -18,6 +18,7 @@ import SettingsEditor from './components/SettingsEditor.js';
 import {loadHistory, saveHistory} from './utils.js';
 import {useSettingsEditor} from './hooks/useSettingsEditor.js';
 import {loadConfig, saveConfig} from './utils/settings.js';
+import config, {generateHelpText} from './config.js';
 
 type Screen =
 	| 'board'
@@ -104,7 +105,7 @@ export default function App() {
 	const BOX_WIDTH = boxSize.width;
 	const BOX_HEIGHT = boxSize.height;
 	const boxPadding = 1; // Appのpadding
-	const boxBorder = 1;  // AppのborderStyle="round"は上下左右+1
+	const boxBorder = 1; // AppのborderStyle="round"は上下左右+1
 
 	// 設定編集用の全項目リスト
 	const keyConfigKeys: string[] = Object.keys(configState.keyConfig);
@@ -286,13 +287,16 @@ export default function App() {
 					// >>の後ろの文字列（番号・文字列）をすべて抽出
 					const refs = Array.from(res.body.matchAll(/>([^\s]+)/g), m => m[1]);
 					// 選択中レスより前のresponsesから、res.body, res.num, res.rscのいずれかに部分一致するものをリストアップ
-					const quoted = responses.slice(0, selectedRes).filter(r =>
-						refs.some(ref =>
-							(r.num ?? '').includes(ref ?? '') ||
-							(r.rsc ?? '').includes(ref ?? '') ||
-							(r.body ?? '').includes(ref ?? '')
-						)
-					);
+					const quoted = responses
+						.slice(0, selectedRes)
+						.filter(r =>
+							refs.some(
+								ref =>
+									(r.num ?? '').includes(ref ?? '') ||
+									(r.rsc ?? '').includes(ref ?? '') ||
+									(r.body ?? '').includes(ref ?? ''),
+							),
+						);
 					if (quoted.length > 0) {
 						setQuoteModal({
 							res: quoted,
@@ -502,8 +506,8 @@ export default function App() {
 			{screen === 'board' && (
 				<BoardSelector boards={boards} selected={selectedBoard} />
 			)}
-			{screen === 'threadList' && (
-				loadingThreads ? (
+			{screen === 'threadList' &&
+				(loadingThreads ? (
 					<Text color="yellow">読み込み中…</Text>
 				) : errorThreads ? (
 					<Text color="red">{errorThreads}</Text>
@@ -519,10 +523,9 @@ export default function App() {
 						boxWidth={BOX_WIDTH}
 						boxHeight={BOX_HEIGHT - 8}
 					/>
-				)
-			)}
-			{screen === 'threadDetail' && (
-				loadingRes ? (
+				))}
+			{screen === 'threadDetail' &&
+				(loadingRes ? (
 					<Text color="yellow">読み込み中…</Text>
 				) : errorRes ? (
 					<Text color="red">{errorRes}</Text>
@@ -537,8 +540,7 @@ export default function App() {
 						hideDeletedRes={hideDeletedRes}
 						boxHeight={BOX_HEIGHT - 8}
 					/>
-				)
-			)}
+				))}
 			{screen === 'historyList' && (
 				<HistoryList
 					history={history}
@@ -565,41 +567,135 @@ export default function App() {
 				/>
 			)}
 
-			{/* モーダルは常に共通Boxの中で条件付き表示 */}
-			{urlSelectMode && (
-				<UrlSelectModal
-					urls={urlSelectMode.urls}
-					onSelect={idx => {
-						const url = urlSelectMode.urls[idx];
-						if (url) {
-							let cmd = '';
-							if (process.platform === 'darwin') cmd = `open "${url}"`;
-							else if (process.platform === 'win32') cmd = `start "" "${url}"`;
-							else cmd = `xdg-open "${url}"`;
-							exec(cmd);
+			{/* フローティングモーダル（中央寄せ） */}
+			{(urlSelectMode || quoteModal) &&
+				(() => {
+					// モーダルの内容幅（画面サイズに応じて可変、最小40）
+					const paddingX = 2;
+					const borderX = 2; // borderStyle="round" で左右1ずつ
+					const modalInnerWidth = BOX_WIDTH - borderX - paddingX * 2;
+
+					// 折り返しを考慮した行数計算関数
+					function countWrappedLines(str: string, width: number): number {
+						if (!str) return 1;
+						return str
+							.split('\n')
+							.map((line: string) =>
+								Math.max(1, Math.ceil(line.length / width)),
+							)
+							.reduce((a: number, b: number) => a + b, 0);
+					}
+
+					let modalHeight = 8; // デフォルト
+					if (urlSelectMode) {
+						// ヘルプテキスト
+						const helpText = generateHelpText(
+							config.helpText.urlSelectModal,
+							configState.keyConfig,
+						);
+						let lines = countWrappedLines(helpText, modalInnerWidth - 4); // paddingX=2*2
+						for (let i = 0; i < urlSelectMode.urls.length; ++i) {
+							lines += countWrappedLines(
+								`${i + 1}: ${urlSelectMode.urls[i]}`,
+								modalInnerWidth - 4,
+							);
 						}
-						setUrlSelectMode(null);
-					}}
-					onCancel={() => setUrlSelectMode(null)}
-				/>
-			)}
-			{quoteModal && (
-				<QuoteModal
-					res={quoteModal.res}
-					message={quoteModal.message}
-					onClose={() => setQuoteModal(null)}
-					onSelect={idx => {
-						if (quoteModal.res && Array.isArray(quoteModal.res)) {
-							const res = quoteModal.res[idx];
-							if (res) {
-								const origIdx = responses.indexOf(res);
-								if (origIdx !== -1) setSelectedRes(origIdx);
+						// paddingY=2, border=2
+						modalHeight = lines + 2 + 2;
+					}
+					if (quoteModal && quoteModal.res) {
+						const helpText = generateHelpText(
+							config.helpText.quoteModal,
+							configState.keyConfig,
+						);
+						let lines = 1; // ヘッダー
+						for (let idx = 0; idx < quoteModal.res.length; ++idx) {
+							const r = quoteModal.res[idx];
+							if (!r) continue;
+							lines += countWrappedLines(
+								`${idx + 1}: ${r.rsc} ${r.date} No.${r.num} ${r.name} そうだね:${r.sod}`,
+								modalInnerWidth - 4,
+							);
+							for (const bodyLine of (r.body || '').split('\n')) {
+								lines += countWrappedLines(bodyLine, modalInnerWidth - 4);
 							}
-							setQuoteModal(null);
+							if (idx < quoteModal.res.length - 1) lines += 1; // marginBottom
 						}
-					}}
-				/>
-			)}
+						lines += countWrappedLines(helpText, modalInnerWidth - 4); // フッター
+						// paddingY=2, border=2
+						modalHeight = lines + 2 + 2;
+					}
+
+					// 画面からはみ出さないように
+					modalHeight = Math.min(modalHeight, BOX_HEIGHT - 2);
+
+					return (
+						<Box
+							position="absolute"
+							width={modalInnerWidth}
+							height={modalHeight}
+						>
+							{/* 背景塗りつぶし */}
+							<Box
+								flexDirection="column"
+								position="absolute"
+								width={modalInnerWidth}
+								height={modalHeight}
+							>
+								{Array.from({length: modalHeight}).map((_, i) => (
+									<Text key={i} backgroundColor="gray">
+										{' '.repeat(modalInnerWidth)}
+									</Text>
+								))}
+							</Box>
+							{/* モーダル内容 */}
+							<Box
+								position="absolute"
+								width={modalInnerWidth}
+								height={modalHeight}
+								justifyContent="center"
+								alignItems="center"
+							>
+								{urlSelectMode && (
+									<UrlSelectModal
+										urls={urlSelectMode.urls}
+										onSelect={idx => {
+											const url = urlSelectMode.urls[idx];
+											if (url) {
+												let cmd = '';
+												if (process.platform === 'darwin')
+													cmd = `open "${url}"`;
+												else if (process.platform === 'win32')
+													cmd = `start "" "${url}"`;
+												else cmd = `xdg-open "${url}"`;
+												exec(cmd);
+											}
+											setUrlSelectMode(null);
+										}}
+										onCancel={() => setUrlSelectMode(null)}
+									/>
+								)}
+								{quoteModal && (
+									<QuoteModal
+										res={quoteModal.res}
+										message={quoteModal.message}
+										onClose={() => setQuoteModal(null)}
+										onSelect={idx => {
+											if (quoteModal.res && Array.isArray(quoteModal.res)) {
+												const res = quoteModal.res[idx];
+												if (res) {
+													const origIdx = responses.indexOf(res);
+													if (origIdx !== -1) setSelectedRes(origIdx);
+												}
+												setQuoteModal(null);
+											}
+										}}
+									/>
+								)}
+							</Box>
+						</Box>
+					);
+				})()}
 		</Box>
 	);
 }
