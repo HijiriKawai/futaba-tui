@@ -81,6 +81,31 @@ export default function App() {
 		error: errorRes,
 	} = useThreadDetail(board?.url ?? '', threadId);
 
+	const [boxSize, setBoxSize] = useState({
+		width: process.stdout.columns ? process.stdout.columns - 2 : 80,
+		height: process.stdout.rows ? process.stdout.rows - 2 : 24,
+	});
+
+	useEffect(() => {
+		function handleResize() {
+			// 画面クリア
+			process.stdout.write('\x1b[3J\x1b[2J\x1b[H');
+			setBoxSize({
+				width: process.stdout.columns ? process.stdout.columns - 2 : 80,
+				height: process.stdout.rows ? process.stdout.rows - 2 : 24,
+			});
+		}
+		process.stdout.on('resize', handleResize);
+		return () => {
+			process.stdout.off('resize', handleResize);
+		};
+	}, []);
+
+	const BOX_WIDTH = boxSize.width;
+	const BOX_HEIGHT = boxSize.height;
+	const boxPadding = 1; // Appのpadding
+	const boxBorder = 1;  // AppのborderStyle="round"は上下左右+1
+
 	// 設定編集用の全項目リスト
 	const keyConfigKeys: string[] = Object.keys(configState.keyConfig);
 	if (!keyConfigKeys.includes('quoteModal')) keyConfigKeys.push('quoteModal');
@@ -464,12 +489,6 @@ export default function App() {
 	function handleEditSubmit(val: string) {
 		settings.submitEditValue(val);
 	}
-
-	// Boxの高さ・幅を固定
-	const BOX_HEIGHT = 35;
-	const BOX_WIDTH = 200;
-	const boxPadding = 1; // Appのpadding
-	const boxBorder = 1;  // AppのborderStyle="round"は上下左右+1
 
 	return (
 		<Box
