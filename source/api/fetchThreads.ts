@@ -24,7 +24,7 @@ export async function fetchThreads(boardUrl: string, sortIdx: number): Promise<T
           imgUrl = boardUrl.replace(/\/$/, '') + '/cat/' + imgFile;
         }
       }
-      threadList.push({ id, title: `レス数:${resCount}`, imgUrl });
+      threadList.push({ id, title: `レス数:${resCount}`, imgUrl, resCount: Number(resCount) || 0 });
     }
   });
   return threadList;

@@ -8,6 +8,8 @@ export type Thread = {
   id: string;
   title: string;
   imgUrl?: string;
+  firstResHead?: string;
+  resCount?: number;
 };
 
 export type Res = {

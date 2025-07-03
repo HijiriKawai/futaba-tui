@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react';
 import { fetchThreads } from '../api/fetchThreads.js';
 import terminalImage from 'terminal-image';
 import { Thread } from '../types/futaba.js';
+import { fetchHtml } from '../utils.js';
+import * as cheerio from 'cheerio';
 
 export function useThreadGrid(boardUrl: string, sortMode: number, reloadTrigger: number) {
   const [threads, setThreads] = useState<Thread[]>([]);
   const [selectedThread, setSelectedThread] = useState(0);
   const [thumbCache, setThumbCache] = useState<{ [imgFile: string]: string }>({});
+  const [titleCache, setTitleCache] = useState<{ [threadId: string]: string }>({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -15,7 +18,31 @@ export function useThreadGrid(boardUrl: string, sortMode: number, reloadTrigger:
     setSelectedThread(0);
     setError(null);
     fetchThreads(boardUrl, sortMode)
-      .then(setThreads)
+      .then(async fetchedThreads => {
+        // 既存キャッシュを使い、未取得分だけfetch
+        const threadsWithTitle = await Promise.all(fetchedThreads.map(async thread => {
+          if (titleCache[thread.id]) {
+            return { ...thread, firstResHead: titleCache[thread.id] };
+          } else {
+            // 1レス目取得
+            try {
+              const html = await fetchHtml(boardUrl + 'res/' + thread.id + '.htm');
+              const match = html.match(/<blockquote[^>]*>([\s\S]*?)<\/blockquote>/i);
+              let body = match ? match[1] : '';
+              // HTMLタグ除去・改行除去
+              body = (body || '').replace(/<[^>]+>/g, '').replace(/\n/g, '');
+              body = cheerio.load(body).text();
+              let head = body.slice(0, 4);
+              if (body.length > 4) head += '…';
+              setTitleCache(prev => ({ ...prev, [thread.id]: head }));
+              return { ...thread, firstResHead: head };
+            } catch {
+              return { ...thread, firstResHead: '' };
+            }
+          }
+        }));
+        setThreads(threadsWithTitle);
+      })
       .catch(() => setError('スレッド一覧の取得に失敗しました'))
       .finally(() => setLoading(false));
   }, [boardUrl, sortMode, reloadTrigger]);

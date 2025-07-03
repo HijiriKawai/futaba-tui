@@ -83,12 +83,12 @@ const ThreadGrid: React.FC<Props> = ({ threads, selected, sortMode, sortModes, t
 										{thread.imgUrl && imgFile && thumbCache[imgFile] && (
 											<Text>{thumbCache[imgFile]}</Text>
 										)}
-										<Text color="gray">{thread.id}</Text>
 										<Text
 											color={isSelected ? 'white' : undefined}
 											backgroundColor={isSelected ? 'blue' : undefined}
 										>
-											{thread.title}
+											{thread.firstResHead || thread.title}
+											<Text color="green">（{thread.resCount ?? 0}）</Text>
 										</Text>
 									</>
 								) : (
