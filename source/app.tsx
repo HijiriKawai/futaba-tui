@@ -1,37 +1,55 @@
-import React, { useState, useEffect } from 'react';
-import { useInput } from 'ink';
+import React, {useState, useEffect} from 'react';
+import {useInput} from 'ink';
 import BoardSelector from './components/BoardSelector.js';
 import ThreadGrid from './components/ThreadGrid.js';
 import ThreadDetail from './components/ThreadDetail.js';
-import { SORT_MODES } from './constants.js';
-import { useBoardSelector } from './hooks/useBoardSelector.js';
-import { useThreadGrid } from './hooks/useThreadGrid.js';
-import { useThreadDetail } from './hooks/useThreadDetail.js';
-import { Text } from 'ink';
-import { exec } from 'child_process';
+import {SORT_MODES} from './constants.js';
+import {useBoardSelector} from './hooks/useBoardSelector.js';
+import {useThreadGrid} from './hooks/useThreadGrid.js';
+import {useThreadDetail} from './hooks/useThreadDetail.js';
+import {Text} from 'ink';
+import {exec} from 'child_process';
 import process from 'process';
 import UrlSelectModal from './components/UrlSelectModal.js';
 import QuoteModal from './components/QuoteModal.js';
-import type { HistoryItem, Config, InkKey, Res } from './types/futaba.js';
+import type {HistoryItem, Config, InkKey, Res} from './types/futaba.js';
 import HistoryList from './components/HistoryList.js';
 import SettingsEditor from './components/SettingsEditor.js';
-import { loadHistory, saveHistory } from './utils.js';
-import { useSettingsEditor } from './hooks/useSettingsEditor.js';
-import { loadConfig, saveConfig } from './utils/settings.js';
+import {loadHistory, saveHistory} from './utils.js';
+import {useSettingsEditor} from './hooks/useSettingsEditor.js';
+import {loadConfig, saveConfig} from './utils/settings.js';
 
-type Screen = 'board' | 'threadList' | 'threadDetail' | 'historyList' | 'settings';
+type Screen =
+	| 'board'
+	| 'threadList'
+	| 'threadDetail'
+	| 'historyList'
+	| 'settings';
+
+function getSortModeIndex(name: string): number {
+	const idx = SORT_MODES.findIndex(m => m.name === name);
+	return idx >= 0 ? idx : 0;
+}
 
 export default function App() {
 	const [screen, setScreen] = useState<Screen>('board');
-	const [sortMode, setSortMode] = useState(0);
+	const [sortMode, setSortMode] = useState(() =>
+		getSortModeIndex(loadConfig().defaultSortMode),
+	);
 	const [threadId, setThreadId] = useState<string | null>(null);
 	const [scrollRowOffset, setScrollRowOffset] = useState(0);
 	const [scrollOffset, setScrollOffset] = useState(0);
 	const [reloadTrigger, setReloadTrigger] = useState(0);
-	const [urlSelectMode, setUrlSelectMode] = useState<null | { urls: string[]; resIdx: number }> (null);
+	const [urlSelectMode, setUrlSelectMode] = useState<null | {
+		urls: string[];
+		resIdx: number;
+	}>(null);
 	const [hideDeletedRes, setHideDeletedRes] = useState(false);
 	const [jumpMessage, _setJumpMessage] = useState<string | null>(null);
-	const [quoteModal, setQuoteModal] = useState<{res?: Res[], message?: string} | null>(null);
+	const [quoteModal, setQuoteModal] = useState<{
+		res?: Res[];
+		message?: string;
+	} | null>(null);
 	const [history, setHistory] = useState<HistoryItem[]>(() => loadHistory());
 	const [selectedHistory, setSelectedHistory] = useState(0);
 	const [showAllHistory, setShowAllHistory] = useState(false);
@@ -41,12 +59,7 @@ export default function App() {
 	const settings = useSettingsEditor(configState, setConfigState);
 
 	// 板選択
-	const {
-		boards,
-		selectedBoard,
-		setSelectedBoard,
-		board,
-	} = useBoardSelector();
+	const {boards, selectedBoard, setSelectedBoard, board} = useBoardSelector();
 
 	// スレッド一覧
 	const {
@@ -71,22 +84,38 @@ export default function App() {
 
 	// 設定編集用の全項目リスト
 	const keyConfigKeys: string[] = Object.keys(configState.keyConfig);
-	const threadGridKeys: string[] = Object.keys(configState.threadGrid).map(k => `threadGrid.${k}`);
-	const threadDetailKeys: string[] = Object.keys(configState.threadDetail).map(k => `threadDetail.${k}`);
+	const threadGridKeys: string[] = Object.keys(configState.threadGrid).map(
+		k => `threadGrid.${k}`,
+	);
+	const threadDetailKeys: string[] = Object.keys(configState.threadDetail).map(
+		k => `threadDetail.${k}`,
+	);
 	// 設定値取得
 	function getValue(key: string): string | number {
 		if (!key) return '';
 		if (keyConfigKeys.includes(key)) return configState.keyConfig[key] ?? '';
-		if (threadGridKeys.includes(key)) return configState.threadGrid[key.replace('threadGrid.', '') as keyof Config['threadGrid']] ?? '';
-		if (threadDetailKeys.includes(key)) return configState.threadDetail[key.replace('threadDetail.', '') as keyof Config['threadDetail']] ?? '';
+		if (threadGridKeys.includes(key))
+			return (
+				configState.threadGrid[
+					key.replace('threadGrid.', '') as keyof Config['threadGrid']
+				] ?? ''
+			);
+		if (threadDetailKeys.includes(key))
+			return (
+				configState.threadDetail[
+					key.replace('threadDetail.', '') as keyof Config['threadDetail']
+				] ?? ''
+			);
+		if (key === settings.defaultSortModeKey)
+			return configState.defaultSortMode || '';
 		return '';
 	}
 
 	// 全角→半角変換
 	function toHalfWidth(str: string) {
-		return str.replace(/[！-～]/g, s =>
-			String.fromCharCode(s.charCodeAt(0) - 0xfee0)
-		).replace(/　/g, ' ');
+		return str
+			.replace(/[！-～]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
+			.replace(/　/g, ' ');
 	}
 
 	function isKey(input: string, key: InkKey, configKey: string) {
@@ -106,18 +135,32 @@ export default function App() {
 	useInput((input, key) => {
 		const inputNorm = input ? toHalfWidth(input) : input;
 		if (screen === 'board') {
-			if (isKey(input, key, 'down')) setSelectedBoard(prev => (prev + 1) % boards.length);
-			else if (isKey(input, key, 'up')) setSelectedBoard(prev => (prev - 1 + boards.length) % boards.length);
+			if (isKey(input, key, 'down'))
+				setSelectedBoard(prev => (prev + 1) % boards.length);
+			else if (isKey(input, key, 'up'))
+				setSelectedBoard(prev => (prev - 1 + boards.length) % boards.length);
 			else if (isKey(input, key, 'quit')) process.exit(0);
 			else if (isKey(input, key, 'enter')) setScreen('threadList');
 		}
 		if (screen === 'threadList') {
-			if (isKey(input, key, 'left')) setSelectedThread(prev => (prev - 1 + threads.length) % threads.length);
-			else if (isKey(input, key, 'right')) setSelectedThread(prev => (prev + 1) % threads.length);
-			else if (isKey(input, key, 'up')) setSelectedThread(prev => (prev - configState.threadGrid.cols + threads.length) % threads.length);
-			else if (isKey(input, key, 'down')) setSelectedThread(prev => (prev + configState.threadGrid.cols) % threads.length);
-			else if (isKey(input, key, 'sortPrev')) setSortMode(prev => (prev - 1 + SORT_MODES.length) % SORT_MODES.length);
-			else if (isKey(input, key, 'sortNext')) setSortMode(prev => (prev + 1) % SORT_MODES.length);
+			if (isKey(input, key, 'left'))
+				setSelectedThread(prev => (prev - 1 + threads.length) % threads.length);
+			else if (isKey(input, key, 'right'))
+				setSelectedThread(prev => (prev + 1) % threads.length);
+			else if (isKey(input, key, 'up'))
+				setSelectedThread(
+					prev =>
+						(prev - configState.threadGrid.cols + threads.length) %
+						threads.length,
+				);
+			else if (isKey(input, key, 'down'))
+				setSelectedThread(
+					prev => (prev + configState.threadGrid.cols) % threads.length,
+				);
+			else if (isKey(input, key, 'sortPrev'))
+				setSortMode(prev => (prev - 1 + SORT_MODES.length) % SORT_MODES.length);
+			else if (isKey(input, key, 'sortNext'))
+				setSortMode(prev => (prev + 1) % SORT_MODES.length);
 			else if (isKey(input, key, 'reload')) setReloadTrigger(t => t + 1);
 			else if (isKey(input, key, 'back')) {
 				setScrollRowOffset(0);
@@ -135,7 +178,9 @@ export default function App() {
 				let imgs: string[] = [];
 				if (res?.imgUrl) imgs.push(res.imgUrl);
 				if (res?.mediaUrls) {
-					imgs = imgs.concat(res.mediaUrls.filter(url => /\.(jpe?g|png|gif)$/i.test(url)));
+					imgs = imgs.concat(
+						res.mediaUrls.filter(url => /\.(jpe?g|png|gif)$/i.test(url)),
+					);
 				}
 				imgs = Array.from(new Set(imgs));
 				if (imgs.length === 1) {
@@ -146,7 +191,7 @@ export default function App() {
 					else cmd = `xdg-open \"${img}\"`;
 					exec(cmd);
 				} else if (imgs.length > 1) {
-					setUrlSelectMode({ urls: imgs, resIdx: selectedRes });
+					setUrlSelectMode({urls: imgs, resIdx: selectedRes});
 				}
 			}
 			if (/^[1-9]$/.test(inputNorm)) {
@@ -154,15 +199,18 @@ export default function App() {
 				if (idx >= 0 && idx < SORT_MODES.length) {
 					setSortMode(idx);
 				}
-			}
-			else if (isKey(inputNorm, key, 'history')) {
+			} else if (isKey(inputNorm, key, 'history')) {
 				setScreen('historyList');
 				setSelectedHistory(0);
 			}
 		}
 		if (screen === 'threadDetail') {
-			if (isKey(input, key, 'down') || isKey(input, key, 'enter')) setSelectedRes(prev => (prev + 1) % responses.length);
-			else if (isKey(input, key, 'up')) setSelectedRes(prev => (prev - 1 + responses.length) % responses.length);
+			if (isKey(input, key, 'down') || isKey(input, key, 'enter'))
+				setSelectedRes(prev => (prev + 1) % responses.length);
+			else if (isKey(input, key, 'up'))
+				setSelectedRes(
+					prev => (prev - 1 + responses.length) % responses.length,
+				);
 			else if (isKey(input, key, 'back')) {
 				setScrollOffset(0);
 				setScreen('threadList');
@@ -172,7 +220,9 @@ export default function App() {
 				let imgs: string[] = [];
 				if (res?.imgUrl) imgs.push(res.imgUrl);
 				if (res?.mediaUrls) {
-					imgs = imgs.concat(res.mediaUrls.filter(url => /\.(jpe?g|png|gif)$/i.test(url)));
+					imgs = imgs.concat(
+						res.mediaUrls.filter(url => /\.(jpe?g|png|gif)$/i.test(url)),
+					);
 				}
 				imgs = Array.from(new Set(imgs));
 				if (imgs.length === 1) {
@@ -183,14 +233,12 @@ export default function App() {
 					else cmd = `xdg-open \"${img}\"`;
 					exec(cmd);
 				} else if (imgs.length > 1) {
-					setUrlSelectMode({ urls: imgs, resIdx: selectedRes });
+					setUrlSelectMode({urls: imgs, resIdx: selectedRes});
 				}
-			}
-			else if (isKey(input, key, 'reload')) {
+			} else if (isKey(input, key, 'reload')) {
 				setThreadId(null);
 				setTimeout(() => setThreadId(threadId), 0);
-			}
-			else if (isKey(input, key, 'openLink')) {
+			} else if (isKey(input, key, 'openLink')) {
 				const res = responses[selectedRes];
 				const urls = res?.body.match(/https?:\/\/[^\s]+/g);
 				if (urls && urls.length > 0) {
@@ -202,15 +250,19 @@ export default function App() {
 						else cmd = `xdg-open "${url}"`;
 						exec(cmd);
 					} else {
-						setUrlSelectMode({ urls, resIdx: selectedRes });
+						setUrlSelectMode({urls, resIdx: selectedRes});
 					}
 				}
-			}
-			else if (isKey(input, key, 'toggleDeleted')) {
+			} else if (isKey(input, key, 'toggleDeleted')) {
 				setHideDeletedRes(v => !v);
 			}
 			if (quoteModal) {
-				if (/^[1-9]$/.test(inputNorm) && quoteModal.res && Array.isArray(quoteModal.res) && quoteModal.res.length > 0) {
+				if (
+					/^[1-9]$/.test(inputNorm) &&
+					quoteModal.res &&
+					Array.isArray(quoteModal.res) &&
+					quoteModal.res.length > 0
+				) {
 					const idx = parseInt(inputNorm, 10) - 1;
 					const res = quoteModal.res[idx];
 					if (res) {
@@ -220,13 +272,16 @@ export default function App() {
 					setQuoteModal(null);
 					return;
 				}
-				if (isKey(input, key, 'quit') || isKey(input, key, 'escape') || isKey(input, key, 'enter')) {
+				if (
+					isKey(input, key, 'quit') ||
+					isKey(input, key, 'escape') ||
+					isKey(input, key, 'enter')
+				) {
 					setQuoteModal(null);
 					return;
 				}
 				return;
-			}
-			else if (isKey(inputNorm, key, 'history')) {
+			} else if (isKey(inputNorm, key, 'history')) {
 				setScreen('historyList');
 				setSelectedHistory(0);
 			}
@@ -249,8 +304,12 @@ export default function App() {
 			return;
 		}
 		if (screen === 'historyList') {
-			if (isKey(input, key, 'down')) setSelectedHistory(prev => (prev + 1) % history.length);
-			else if (isKey(input, key, 'up')) setSelectedHistory(prev => (prev - 1 + history.length) % history.length);
+			if (isKey(input, key, 'down'))
+				setSelectedHistory(prev => (prev + 1) % history.length);
+			else if (isKey(input, key, 'up'))
+				setSelectedHistory(
+					prev => (prev - 1 + history.length) % history.length,
+				);
 			else if (isKey(inputNorm, key, 'back')) setScreen('threadList');
 			else if (isKey(input, key, 'enter')) {
 				const item = history[selectedHistory];
@@ -258,16 +317,13 @@ export default function App() {
 					setThreadId(item.threadId);
 					setScreen('threadDetail');
 				}
-			}
-			else if (isKey(inputNorm, key, 'clearHistory')) {
+			} else if (isKey(inputNorm, key, 'clearHistory')) {
 				setHistory([]);
 				setSelectedHistory(0);
-			}
-			else if (isKey(inputNorm, key, 'toggleHistoryAll')) {
+			} else if (isKey(inputNorm, key, 'toggleHistoryAll')) {
 				setShowAllHistory(v => !v);
 				setSelectedHistory(0);
-			}
-			else if (isKey(inputNorm, key, 'quit')) process.exit(0);
+			} else if (isKey(inputNorm, key, 'quit')) process.exit(0);
 			return;
 		}
 		if (isKey(input, key, 'settings')) {
@@ -275,11 +331,13 @@ export default function App() {
 			return;
 		}
 		if (screen === 'settings') {
-			if (settings.editing) return; // 編集中はTextInput側で処理
+			if (settings.editing) {
+				return;
+			}
 			if (settings.keyInputMode) {
 				const k = settings.allKeys[settings.selected] ?? '';
 				if (k && settings.keyConfigKeys.includes(k)) {
-					let newConfig = { ...configState };
+					let newConfig = {...configState};
 					let val = input;
 					if (key.upArrow) val = 'up';
 					else if (key.downArrow) val = 'down';
@@ -293,7 +351,7 @@ export default function App() {
 					}
 					newConfig = {
 						...newConfig,
-						keyConfig: { ...newConfig.keyConfig, [k]: val },
+						keyConfig: {...newConfig.keyConfig, [k]: val},
 					};
 					setConfigState(newConfig);
 					settings.setKeyInputMode(false);
@@ -302,14 +360,19 @@ export default function App() {
 				return;
 			}
 			if (key.upArrow) {
-				settings.setSelected(prev => (prev - 1 + settings.allKeys.length) % settings.allKeys.length);
+				settings.setSelected(
+					prev =>
+						(prev - 1 + settings.allKeys.length) % settings.allKeys.length,
+				);
 			} else if (key.downArrow) {
 				settings.setSelected(prev => (prev + 1) % settings.allKeys.length);
 			} else if (key.return) {
 				const k = settings.allKeys[settings.selected] ?? '';
 				if (k && settings.keyConfigKeys.includes(k)) {
 					settings.setKeyInputMode(true);
-					settings.setMessage('割り当てたいキーを押してください（Escでキャンセル）');
+					settings.setMessage(
+						'割り当てたいキーを押してください（Escでキャンセル）',
+					);
 				} else if (k) {
 					settings.setEditing(true);
 					settings.setEditValue(String(getValue(k)));
@@ -318,6 +381,7 @@ export default function App() {
 			} else if (input === configState.keyConfig['saveSettings']) {
 				saveConfig(configState);
 				setConfigState(loadConfig());
+				setSortMode(getSortModeIndex(configState.defaultSortMode));
 				settings.setMessage('保存しました');
 			} else if (input === configState.keyConfig['quit'] || key.escape) {
 				setScreen('board');
@@ -328,7 +392,12 @@ export default function App() {
 
 	// ThreadDetailを開くたびに履歴を追加
 	useEffect(() => {
-		if (screen === 'threadDetail' && threadId && responses.length > 0 && board) {
+		if (
+			screen === 'threadDetail' &&
+			threadId &&
+			responses.length > 0 &&
+			board
+		) {
 			const firstRes = responses[0];
 			if (!firstRes) return;
 			let firstResHead = firstRes.body.replace(/\n/g, '');
@@ -358,6 +427,11 @@ export default function App() {
 		saveHistory(history);
 	}, [history]);
 
+	// defaultSortModeが変わったらsortModeも更新
+	useEffect(() => {
+		setSortMode(getSortModeIndex(configState.defaultSortMode));
+	}, [configState.defaultSortMode]);
+
 	function handleEditValueChange(val: string) {
 		settings.setEditValue(val);
 	}
@@ -366,12 +440,7 @@ export default function App() {
 	}
 
 	if (screen === 'board') {
-		return (
-			<BoardSelector
-				boards={boards}
-				selected={selectedBoard}
-			/>
-		);
+		return <BoardSelector boards={boards} selected={selectedBoard} />;
 	}
 	if (screen === 'threadList') {
 		if (loadingThreads) return <Text>読み込み中…</Text>;
@@ -404,9 +473,7 @@ export default function App() {
 					setScrollOffset={setScrollOffset}
 					hideDeletedRes={hideDeletedRes}
 				/>
-				{jumpMessage && (
-					<Text color="red">{jumpMessage}</Text>
-				)}
+				{jumpMessage && <Text color="red">{jumpMessage}</Text>}
 				{urlSelectMode && (
 					<UrlSelectModal
 						urls={urlSelectMode.urls}
@@ -415,7 +482,8 @@ export default function App() {
 							if (url) {
 								let cmd = '';
 								if (process.platform === 'darwin') cmd = `open \"${url}\"`;
-								else if (process.platform === 'win32') cmd = `start \"\" \"${url}\"`;
+								else if (process.platform === 'win32')
+									cmd = `start \"\" \"${url}\"`;
 								else cmd = `xdg-open \"${url}\"`;
 								exec(cmd);
 							}
@@ -465,6 +533,8 @@ export default function App() {
 				getValue={getValue}
 				onEditValueChange={handleEditValueChange}
 				onEditSubmit={handleEditSubmit}
+				defaultSortModeKey={settings.defaultSortModeKey}
+				setEditing={settings.setEditing} // ← これを追加
 			/>
 		);
 	}

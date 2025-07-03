@@ -44,6 +44,7 @@ export type Config = {
   threadDetail: {
     windowSize: number;
   };
+  defaultSortMode: string;
 };
 
 export type InkKey = {

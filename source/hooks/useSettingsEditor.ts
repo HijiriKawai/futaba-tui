@@ -3,6 +3,7 @@ import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import type { Config } from '../types/futaba.js';
+import { SORT_MODES } from '../constants.js';
 
 export function useSettingsEditor(configState: Config, setConfigState: (c: Config) => void) {
   // 設定画面用状態
@@ -16,15 +17,17 @@ export function useSettingsEditor(configState: Config, setConfigState: (c: Confi
   const keyConfigKeys: string[] = Object.keys(configState.keyConfig);
   const threadGridKeys: string[] = Object.keys(configState.threadGrid).map(k => `threadGrid.${k}`);
   const threadDetailKeys: string[] = Object.keys(configState.threadDetail).map(k => `threadDetail.${k}`);
-  const allKeys: string[] = [...keyConfigKeys, ...threadGridKeys, ...threadDetailKeys];
+  const defaultSortModeKey = 'defaultSortMode';
+  const allKeys: string[] = [...keyConfigKeys, ...threadGridKeys, ...threadDetailKeys, defaultSortModeKey];
 
-  function getValue(key: string): string | number {
+	function getValue(key: string): string | number {
     if (!key) return '';
     if (keyConfigKeys.includes(key)) return configState.keyConfig[key] ?? '';
     if (threadGridKeys.includes(key)) return configState.threadGrid[key.replace('threadGrid.', '') as keyof Config['threadGrid']] ?? '';
     if (threadDetailKeys.includes(key)) return configState.threadDetail[key.replace('threadDetail.', '') as keyof Config['threadDetail']] ?? '';
+    if (key === defaultSortModeKey) return configState.defaultSortMode;
     return '';
-  }
+	}
 
   function submitEditValue(val: string) {
     const key = allKeys[selected] ?? '';
@@ -53,6 +56,15 @@ export function useSettingsEditor(configState: Config, setConfigState: (c: Confi
         ...newConfig,
         threadDetail: { ...newConfig.threadDetail, [k]: num },
       };
+    } else if (key === defaultSortModeKey) {
+      if (!SORT_MODES.some(m => m.name === val)) {
+        setMessage('有効なソート名を選択してください');
+        return;
+      }
+      newConfig = {
+        ...newConfig,
+        defaultSortMode: val,
+      };
     }
     setConfigState(newConfig);
     setEditing(false);
@@ -74,6 +86,7 @@ export function useSettingsEditor(configState: Config, setConfigState: (c: Confi
     message, setMessage,
     keyInputMode, setKeyInputMode,
     keyConfigKeys, threadGridKeys, threadDetailKeys, allKeys,
-    getValue, submitEditValue, saveSettingsToFile
+    getValue, submitEditValue, saveSettingsToFile,
+    defaultSortModeKey,
   };
 }

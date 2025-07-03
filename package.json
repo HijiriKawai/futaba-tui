@@ -20,6 +20,7 @@
 		"cheerio": "^1.1.0",
 		"iconv-lite": "^0.6.3",
 		"ink": "^6.0.1",
+		"ink-select-input": "^6.2.0",
 		"ink-text-input": "^6.0.0",
 		"meow": "^13.2.0",
 		"react": "^19.1.0",
