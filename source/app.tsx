@@ -7,7 +7,7 @@ import {SORT_MODES} from './constants.js';
 import {useBoardSelector} from './hooks/useBoardSelector.js';
 import {useThreadGrid} from './hooks/useThreadGrid.js';
 import {useThreadDetail} from './hooks/useThreadDetail.js';
-import {Text} from 'ink';
+import {Box, Text} from 'ink';
 import {exec} from 'child_process';
 import process from 'process';
 import UrlSelectModal from './components/UrlSelectModal.js';
@@ -45,7 +45,6 @@ export default function App() {
 		resIdx: number;
 	}>(null);
 	const [hideDeletedRes, setHideDeletedRes] = useState(false);
-	const [jumpMessage, _setJumpMessage] = useState<string | null>(null);
 	const [quoteModal, setQuoteModal] = useState<{
 		res?: Res[];
 		message?: string;
@@ -84,6 +83,7 @@ export default function App() {
 
 	// 設定編集用の全項目リスト
 	const keyConfigKeys: string[] = Object.keys(configState.keyConfig);
+	if (!keyConfigKeys.includes('quoteModal')) keyConfigKeys.push('quoteModal');
 	const threadGridKeys: string[] = Object.keys(configState.threadGrid).map(
 		k => `threadGrid.${k}`,
 	);
@@ -255,6 +255,32 @@ export default function App() {
 				}
 			} else if (isKey(input, key, 'toggleDeleted')) {
 				setHideDeletedRes(v => !v);
+			} else if (isKey(input, key, 'quoteModal')) {
+				const res = responses[selectedRes];
+				if (res) {
+					// >>の後ろの文字列（番号・文字列）をすべて抽出
+					const refs = Array.from(res.body.matchAll(/>([^\s]+)/g), m => m[1]);
+					// 選択中レスより前のresponsesから、res.body, res.num, res.rscのいずれかに部分一致するものをリストアップ
+					const quoted = responses.slice(0, selectedRes).filter(r =>
+						refs.some(ref =>
+							(r.num ?? '').includes(ref ?? '') ||
+							(r.rsc ?? '').includes(ref ?? '') ||
+							(r.body ?? '').includes(ref ?? '')
+						)
+					);
+					if (quoted.length > 0) {
+						setQuoteModal({
+							res: quoted,
+							message: '引用元を選択してください',
+						});
+					} else {
+						setQuoteModal({
+							res: [],
+							message: '引用元がありません',
+						});
+					}
+				}
+				return;
 			}
 			if (quoteModal) {
 				if (
@@ -292,9 +318,9 @@ export default function App() {
 				const url = urlSelectMode.urls[idx];
 				if (url) {
 					let cmd = '';
-					if (process.platform === 'darwin') cmd = `open \"${url}\"`;
-					else if (process.platform === 'win32') cmd = `start \"\" \"${url}\"`;
-					else cmd = `xdg-open \"${url}\"`;
+					if (process.platform === 'darwin') cmd = `open "${url}\"`;
+					else if (process.platform === 'win32') cmd = `start "" "${url}\"`;
+					else cmd = `xdg-open "${url}\"`;
 					exec(cmd);
 				}
 				setUrlSelectMode(null);
@@ -439,104 +465,122 @@ export default function App() {
 		settings.submitEditValue(val);
 	}
 
-	if (screen === 'board') {
-		return <BoardSelector boards={boards} selected={selectedBoard} />;
-	}
-	if (screen === 'threadList') {
-		if (loadingThreads) return <Text>読み込み中…</Text>;
-		if (errorThreads) return <Text color="red">{errorThreads}</Text>;
-		return (
-			<ThreadGrid
-				threads={threads}
-				selected={selectedThread}
-				sortMode={sortMode}
-				sortModes={SORT_MODES}
-				thumbCache={thumbCache}
-				scrollRowOffset={scrollRowOffset}
-				setScrollRowOffset={setScrollRowOffset}
-				cols={configState.threadGrid.cols}
-				rows={configState.threadGrid.rows}
-			/>
-		);
-	}
-	if (screen === 'threadDetail') {
-		if (loadingRes) return <Text>読み込み中…</Text>;
-		if (errorRes) return <Text color="red">{errorRes}</Text>;
-		return (
-			<>
-				<ThreadDetail
-					responses={responses}
-					selected={selectedRes}
-					resThumb={resThumb}
-					mediaThumbCache={mediaThumbCache}
-					scrollOffset={scrollOffset}
-					setScrollOffset={setScrollOffset}
-					hideDeletedRes={hideDeletedRes}
+	// Boxの高さ・幅を固定
+	const BOX_HEIGHT = 35;
+	const BOX_WIDTH = 200;
+	const boxPadding = 1; // Appのpadding
+	const boxBorder = 1;  // AppのborderStyle="round"は上下左右+1
+
+	return (
+		<Box
+			flexDirection="column"
+			borderStyle="round"
+			borderColor="cyan"
+			padding={boxPadding}
+			height={BOX_HEIGHT}
+			width={BOX_WIDTH}
+		>
+			{screen === 'board' && (
+				<BoardSelector boards={boards} selected={selectedBoard} />
+			)}
+			{screen === 'threadList' && (
+				loadingThreads ? (
+					<Text color="yellow">読み込み中…</Text>
+				) : errorThreads ? (
+					<Text color="red">{errorThreads}</Text>
+				) : (
+					<ThreadGrid
+						threads={threads}
+						selected={selectedThread}
+						sortMode={sortMode}
+						sortModes={SORT_MODES}
+						thumbCache={thumbCache}
+						scrollRowOffset={scrollRowOffset}
+						setScrollRowOffset={setScrollRowOffset}
+						boxWidth={BOX_WIDTH}
+						boxHeight={BOX_HEIGHT - 8}
+					/>
+				)
+			)}
+			{screen === 'threadDetail' && (
+				loadingRes ? (
+					<Text color="yellow">読み込み中…</Text>
+				) : errorRes ? (
+					<Text color="red">{errorRes}</Text>
+				) : (
+					<ThreadDetail
+						responses={responses}
+						selected={selectedRes}
+						resThumb={resThumb}
+						mediaThumbCache={mediaThumbCache}
+						scrollOffset={scrollOffset}
+						setScrollOffset={setScrollOffset}
+						hideDeletedRes={hideDeletedRes}
+						boxHeight={BOX_HEIGHT - 8}
+					/>
+				)
+			)}
+			{screen === 'historyList' && (
+				<HistoryList
+					history={history}
+					selectedHistory={selectedHistory}
+					showAll={showAllHistory}
+					visibleRows={BOX_HEIGHT - 8}
 				/>
-				{jumpMessage && <Text color="red">{jumpMessage}</Text>}
-				{urlSelectMode && (
-					<UrlSelectModal
-						urls={urlSelectMode.urls}
-						onSelect={idx => {
-							const url = urlSelectMode.urls[idx];
-							if (url) {
-								let cmd = '';
-								if (process.platform === 'darwin') cmd = `open \"${url}\"`;
-								else if (process.platform === 'win32')
-									cmd = `start \"\" \"${url}\"`;
-								else cmd = `xdg-open \"${url}\"`;
-								exec(cmd);
+			)}
+			{screen === 'settings' && (
+				<SettingsEditor
+					selected={settings.selected}
+					editing={settings.editing}
+					editValue={settings.editValue}
+					message={settings.message}
+					keyConfigKeys={settings.keyConfigKeys}
+					allKeys={settings.allKeys}
+					getValue={getValue}
+					onEditValueChange={handleEditValueChange}
+					onEditSubmit={handleEditSubmit}
+					defaultSortModeKey={settings.defaultSortModeKey}
+					BOX_HEIGHT={BOX_HEIGHT}
+					boxPadding={boxPadding}
+					boxBorder={boxBorder}
+				/>
+			)}
+
+			{/* モーダルは常に共通Boxの中で条件付き表示 */}
+			{urlSelectMode && (
+				<UrlSelectModal
+					urls={urlSelectMode.urls}
+					onSelect={idx => {
+						const url = urlSelectMode.urls[idx];
+						if (url) {
+							let cmd = '';
+							if (process.platform === 'darwin') cmd = `open "${url}"`;
+							else if (process.platform === 'win32') cmd = `start "" "${url}"`;
+							else cmd = `xdg-open "${url}"`;
+							exec(cmd);
+						}
+						setUrlSelectMode(null);
+					}}
+					onCancel={() => setUrlSelectMode(null)}
+				/>
+			)}
+			{quoteModal && (
+				<QuoteModal
+					res={quoteModal.res}
+					message={quoteModal.message}
+					onClose={() => setQuoteModal(null)}
+					onSelect={idx => {
+						if (quoteModal.res && Array.isArray(quoteModal.res)) {
+							const res = quoteModal.res[idx];
+							if (res) {
+								const origIdx = responses.indexOf(res);
+								if (origIdx !== -1) setSelectedRes(origIdx);
 							}
-							setUrlSelectMode(null);
-						}}
-						onCancel={() => setUrlSelectMode(null)}
-					/>
-				)}
-				{quoteModal && (
-					<QuoteModal
-						res={quoteModal.res}
-						message={quoteModal.message}
-						onClose={() => setQuoteModal(null)}
-						onSelect={idx => {
-							if (quoteModal.res && Array.isArray(quoteModal.res)) {
-								const res = quoteModal.res[idx];
-								if (res) {
-									const origIdx = responses.indexOf(res);
-									if (origIdx !== -1) setSelectedRes(origIdx);
-								}
-								setQuoteModal(null);
-							}
-						}}
-					/>
-				)}
-			</>
-		);
-	}
-	if (screen === 'historyList') {
-		return (
-			<HistoryList
-				history={history}
-				selectedHistory={selectedHistory}
-				showAll={showAllHistory}
-			/>
-		);
-	}
-	if (screen === 'settings') {
-		return (
-			<SettingsEditor
-				selected={settings.selected}
-				editing={settings.editing}
-				editValue={settings.editValue}
-				message={settings.message}
-				keyConfigKeys={settings.keyConfigKeys}
-				allKeys={settings.allKeys}
-				getValue={getValue}
-				onEditValueChange={handleEditValueChange}
-				onEditSubmit={handleEditSubmit}
-				defaultSortModeKey={settings.defaultSortModeKey}
-				setEditing={settings.setEditing} // ← これを追加
-			/>
-		);
-	}
-	return null;
+							setQuoteModal(null);
+						}
+					}}
+				/>
+			)}
+		</Box>
+	);
 }

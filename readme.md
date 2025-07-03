@@ -47,7 +47,7 @@ npm install --global futaba-tui
     "quit": "q",        // 終了
     "sortPrev": "[",    // ソート前
     "sortNext": "]",    // ソート次
-    "quoteJump": "c",   // 引用ジャンプ
+    "quoteModal": "c",   // 引用ジャンプ
     "urlSelectCancel": "q", // URL選択モーダルキャンセル
     "urlSelectCancelEsc": "escape", // esc
     "quoteModalCancel": "q", // 引用モーダルキャンセル
@@ -85,7 +85,7 @@ npm install --global futaba-tui
     "quit": "q",
     "sortPrev": "<",
     "sortNext": ">",
-    "quoteJump": "c",
+    "quoteModal": "c",
     "urlSelectCancel": "q",
     "urlSelectCancelEsc": "escape",
     "quoteModalCancel": "q",

@@ -1,57 +1,72 @@
 import React from 'react';
-import { Box, Text } from 'ink';
-import type { Thread, SortMode } from '../types/futaba.js';
-import config, { generateHelpText } from '../config.js';
+import {Box, Text} from 'ink';
+import type {Thread, SortMode} from '../types/futaba.js';
+import config, {generateHelpText} from '../config.js';
 
 type Props = {
-  threads: Thread[];
-  selected: number;
-  sortMode: number;
-  sortModes: SortMode[];
-  thumbCache: { [imgFile: string]: string };
-  scrollRowOffset: number;
-  setScrollRowOffset: (offset: number) => void;
-  cols: number;
-  rows: number;
+	threads: Thread[];
+	selected: number;
+	sortMode: number;
+	sortModes: SortMode[];
+	thumbCache: {[imgFile: string]: string};
+	scrollRowOffset: number;
+	setScrollRowOffset: (offset: number) => void;
+	boxWidth: number;
+	boxHeight: number;
 };
 
-const ThreadGrid: React.FC<Props> = ({ threads, selected, sortMode, sortModes, thumbCache, scrollRowOffset, setScrollRowOffset, cols, rows }) => {
-  const totalRows = Math.ceil(threads.length / cols);
-  const visibleRows = rows;
-  const selectedRow = Math.floor(selected / cols);
-  const selectedCol = selected % cols;
+const CARD_HEIGHT = 11; // 1カードの高さ
+const CARD_WIDTH = 35; // 1カードの幅
 
-  React.useEffect(() => {
-    if (selectedRow < scrollRowOffset) {
-      setScrollRowOffset(selectedRow);
-    } else if (selectedRow >= scrollRowOffset + visibleRows) {
-      setScrollRowOffset(selectedRow - visibleRows + 1);
-    }
-  }, [selectedRow, scrollRowOffset, setScrollRowOffset]);
+const ThreadGrid: React.FC<Props> = ({
+	threads,
+	selected,
+	sortMode,
+	sortModes,
+	thumbCache,
+	scrollRowOffset,
+	setScrollRowOffset,
+	boxWidth,
+	boxHeight,
+}) => {
+	const visibleCols = Math.max(1, Math.floor(boxWidth / CARD_WIDTH));
+	const visibleRows = Math.max(1, Math.floor(boxHeight / CARD_HEIGHT));
+	const totalRows = Math.ceil(threads.length / visibleCols);
+	const selectedRow = Math.floor(selected / visibleCols);
+	const selectedCol = selected % visibleCols;
 
-  const grid: (Thread | undefined)[][] = [];
-  for (let r = scrollRowOffset; r < Math.min(scrollRowOffset + visibleRows, totalRows); r++) {
-    const row: (Thread | undefined)[] = [];
-    for (let c = 0; c < cols; c++) {
-      const idx = r * cols + c;
-      if (idx < threads.length) row.push(threads[idx]);
-      else row.push(undefined);
-    }
-    grid.push(row);
-  }
+	React.useEffect(() => {
+		if (selectedRow < scrollRowOffset) {
+			setScrollRowOffset(selectedRow);
+		} else if (selectedRow >= scrollRowOffset + visibleRows) {
+			setScrollRowOffset(selectedRow - visibleRows + 1);
+		}
+	}, [selectedRow, scrollRowOffset, setScrollRowOffset, visibleRows]);
 
-  return (
+	const grid: (Thread | undefined)[][] = [];
+	for (let r = scrollRowOffset; r < Math.min(scrollRowOffset + visibleRows, totalRows); r++) {
+		const row: (Thread | undefined)[] = [];
+		for (let c = 0; c < visibleCols; c++) {
+			const idx = r * visibleCols + c;
+			if (idx < threads.length) row.push(threads[idx]);
+			else row.push(undefined);
+		}
+		grid.push(row);
+	}
+
+	return (
 		<Box flexDirection="column">
 			<Text color="cyan">
 				{generateHelpText(config.helpText.threadList, config.keyConfig)}
 			</Text>
 			<Text color="gray">
-				数字キーでソート切り替え: {sortModes.map((m, i) => `${i+1}:${m.name}`).join(' ')}
+				数字キーでソート切り替え:{' '}
+				{sortModes.map((m, i) => `${i + 1}:${m.name}`).join(' ')}
 			</Text>
 			<Text color="yellow">
 				全{threads.length}件中、
-				{Math.min(scrollRowOffset * cols + 1, threads.length)}〜
-				{Math.min((scrollRowOffset + rows) * cols, threads.length)}件を表示中
+				{Math.min(scrollRowOffset * visibleCols + 1, threads.length)}〜
+				{Math.min((scrollRowOffset + visibleRows) * visibleCols, threads.length)}件を表示中
 			</Text>
 			<Text color="magenta">
 				現在のソート: {sortModes[sortMode]?.name ?? ''}
@@ -64,6 +79,9 @@ const ThreadGrid: React.FC<Props> = ({ threads, selected, sortMode, sortModes, t
 						const imgFile = thread?.imgUrl
 							? thread.imgUrl.split('/').pop()
 							: '';
+						let resColor = 'green';
+						if ((thread?.resCount ?? 0) >= 500) resColor = 'red';
+						else if ((thread?.resCount ?? 0) >= 100) resColor = 'yellow';
 						return (
 							<Box
 								key={cIdx}
@@ -74,9 +92,11 @@ const ThreadGrid: React.FC<Props> = ({ threads, selected, sortMode, sortModes, t
 								paddingY={0}
 								marginRight={1}
 								marginBottom={1}
-								minWidth={35}
+								height={CARD_HEIGHT}
+								width={CARD_WIDTH}
 								alignItems="center"
 								justifyContent="center"
+								{...(isSelected ? {backgroundColor: 'blue'} : {})}
 							>
 								{thread ? (
 									<>
@@ -88,7 +108,7 @@ const ThreadGrid: React.FC<Props> = ({ threads, selected, sortMode, sortModes, t
 											backgroundColor={isSelected ? 'blue' : undefined}
 										>
 											{thread.firstResHead || thread.title}
-											<Text color="green">（{thread.resCount ?? 0}）</Text>
+											<Text color={resColor}>（{thread.resCount ?? 0}）</Text>
 										</Text>
 									</>
 								) : (

@@ -5,7 +5,7 @@ import type { Config } from '../types/futaba.js';
 
 export const defaultConfig = {
   keyConfig: {
-    up: 'up', down: 'down', left: 'left', right: 'right', enter: 'enter', openImage: 'o', openLink: 'l', toggleDeleted: 'x', history: 'h', reload: 'r', back: 'b', quit: 'q', sortPrev: '[', sortNext: ']', quoteJump: 'c', urlSelectCancel: 'q', urlSelectCancelEsc: 'escape', quoteModalCancel: 'q', quoteModalCancelEsc: 'escape', quoteModalCancelEnter: 'enter', clearHistory: 'C', toggleHistoryAll: 'A', settings: 's', saveSettings: 'w',
+    up: 'up', down: 'down', left: 'left', right: 'right', enter: 'enter', openImage: 'o', openLink: 'l', toggleDeleted: 'x', history: 'h', reload: 'r', back: 'b', quit: 'q', sortPrev: '[', sortNext: ']', quoteModal: 'c', urlSelectCancel: 'q', urlSelectCancelEsc: 'escape', quoteModalCancel: 'q', quoteModalCancelEsc: 'escape', quoteModalCancelEnter: 'enter', clearHistory: 'C', toggleHistoryAll: 'A', settings: 's', saveSettings: 'w',
   },
   helpText: {
     board: '板を選択してください（{up}{down}:移動 {enter}:決定 {quit}:終了）',

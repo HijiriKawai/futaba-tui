@@ -13,14 +13,16 @@ export default function BoardSelector({ boards, selected }: Props) {
     <Box flexDirection="column">
       <Text color="cyan">{generateHelpText(config.helpText.board, config.keyConfig)}</Text>
       {boards.map((board, idx) => (
-        <Text
-          key={board.key}
-          backgroundColor={selected === idx ? 'blue' : undefined}
-          color={selected === idx ? 'white' : undefined}
-        >
-          {selected === idx ? '▶ ' : '  '}
-          {board.name}（{board.key}）
-        </Text>
+        <Box key={board.key}>
+          <Text
+            backgroundColor={selected === idx ? 'blue' : undefined}
+            color={selected === idx ? 'white' : undefined}
+          >
+            {selected === idx ? '▶ ' : '  '}
+            <Text bold>{board.name}</Text>
+            <Text color="gray">（{board.key}）</Text>
+          </Text>
+        </Box>
       ))}
     </Box>
   );
