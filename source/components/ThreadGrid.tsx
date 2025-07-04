@@ -44,7 +44,11 @@ const ThreadGrid: React.FC<Props> = ({
 	}, [selectedRow, scrollRowOffset, setScrollRowOffset, visibleRows]);
 
 	const grid: (Thread | undefined)[][] = [];
-	for (let r = scrollRowOffset; r < Math.min(scrollRowOffset + visibleRows, totalRows); r++) {
+	for (
+		let r = scrollRowOffset;
+		r < Math.min(scrollRowOffset + visibleRows, totalRows);
+		r++
+	) {
 		const row: (Thread | undefined)[] = [];
 		for (let c = 0; c < visibleCols; c++) {
 			const idx = r * visibleCols + c;
@@ -66,7 +70,11 @@ const ThreadGrid: React.FC<Props> = ({
 			<Text color="yellow">
 				全{threads.length}件中、
 				{Math.min(scrollRowOffset * visibleCols + 1, threads.length)}〜
-				{Math.min((scrollRowOffset + visibleRows) * visibleCols, threads.length)}件を表示中
+				{Math.min(
+					(scrollRowOffset + visibleRows) * visibleCols,
+					threads.length,
+				)}
+				件を表示中
 			</Text>
 			<Text color="magenta">
 				現在のソート: {sortModes[sortMode]?.name ?? ''}

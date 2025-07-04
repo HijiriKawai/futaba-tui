@@ -44,7 +44,8 @@ export default function SettingsEditor({
 
 	const HEADER_LINES = 1; // 設定画面のヘッダー
 	const FOOTER_LINES = 1; // メッセージや余白
-	const visibleRows = BOX_HEIGHT - 2 * boxPadding - 2 * boxBorder - HEADER_LINES - FOOTER_LINES;
+	const visibleRows =
+		BOX_HEIGHT - 2 * boxPadding - 2 * boxBorder - HEADER_LINES - FOOTER_LINES;
 
 	// 1項目あたりの高さ（border上下+2, marginBottom+1, 本体1）
 	const ITEM_HEIGHT = 1 + 2 + 1; // 本体+border+margin
@@ -78,7 +79,10 @@ export default function SettingsEditor({
 						marginBottom={1}
 						paddingLeft={1}
 					>
-						<Text color={selected === realIdx ? 'yellow' : undefined} bold={selected === realIdx}>
+						<Text
+							color={selected === realIdx ? 'yellow' : undefined}
+							bold={selected === realIdx}
+						>
 							{selected === realIdx ? '> ' : '  '}
 							{key}: {getValue(key)}
 						</Text>
@@ -87,7 +91,9 @@ export default function SettingsEditor({
 								<Box>
 									<SelectInput
 										items={sortItems}
-										initialIndex={sortItems.findIndex(i => i.value === editValue)}
+										initialIndex={sortItems.findIndex(
+											i => i.value === editValue,
+										)}
 										onSelect={item => item && onEditSubmit(item.value)}
 									/>
 								</Box>

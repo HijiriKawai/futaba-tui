@@ -47,53 +47,57 @@ const defaultConfig = {
 };
 
 // XDG Base Directory対応
-const xdgConfigHome = process.env['XDG_CONFIG_HOME'] || path.join(os.homedir(), '.config');
+const xdgConfigHome =
+	process.env['XDG_CONFIG_HOME'] || path.join(os.homedir(), '.config');
 const xdgConfigPath = path.join(xdgConfigHome, 'futaba-tui', 'config.json');
 
 // 設定ファイルの探索パス
 const configFileNames = [
-  path.join(process.cwd(), 'futaba-tui.config.json'),
-  path.join(os.homedir(), '.futaba-tui.config.json'),
-  xdgConfigPath,
+	path.join(process.cwd(), 'futaba-tui.config.json'),
+	path.join(os.homedir(), '.futaba-tui.config.json'),
+	xdgConfigPath,
 ];
 
 function loadConfig() {
-  for (const file of configFileNames) {
-    if (fs.existsSync(file)) {
-      try {
-        const json = JSON.parse(fs.readFileSync(file, 'utf-8'));
-        return {
-          ...defaultConfig,
-          ...json,
-          keyConfig: { ...defaultConfig.keyConfig, ...(json.keyConfig || {}) },
-        };
-      } catch (e) {
-        // パース失敗時はデフォルト
-        return defaultConfig;
-      }
-    }
-  }
-  return defaultConfig;
+	for (const file of configFileNames) {
+		if (fs.existsSync(file)) {
+			try {
+				const json = JSON.parse(fs.readFileSync(file, 'utf-8'));
+				return {
+					...defaultConfig,
+					...json,
+					keyConfig: {...defaultConfig.keyConfig, ...(json.keyConfig || {})},
+				};
+			} catch {
+				// パース失敗時はデフォルト
+				return defaultConfig;
+			}
+		}
+	}
+	return defaultConfig;
 }
 
 const keySymbolMap: Record<string, string> = {
-  up: '↑',
-  down: '↓',
-  left: '←',
-  right: '→',
-  enter: 'Enter',
-  escape: 'Esc',
+	up: '↑',
+	down: '↓',
+	left: '←',
+	right: '→',
+	enter: 'Enter',
+	escape: 'Esc',
 };
 
-function generateHelpText(template: string, keyConfig: Record<string, string>): string {
-  return template.replace(/\{(\w+)\}/g, (_, key) => {
-    const val = keyConfig[key];
-    if (!val) return `{${key}}`;
-    // 特殊キーは記号に変換
-    return keySymbolMap[val] || val;
-  });
+function generateHelpText(
+	template: string,
+	keyConfig: Record<string, string>,
+): string {
+	return template.replace(/\{(\w+)\}/g, (_, key) => {
+		const val = keyConfig[key];
+		if (!val) return `{${key}}`;
+		// 特殊キーは記号に変換
+		return keySymbolMap[val] || val;
+	});
 }
 
 const config = loadConfig();
-export { generateHelpText };
+export {generateHelpText};
 export default config;

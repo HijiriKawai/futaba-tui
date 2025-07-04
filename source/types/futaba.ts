@@ -1,31 +1,31 @@
 export type Board = {
-  key: string;
-  name: string;
-  url: string;
+	key: string;
+	name: string;
+	url: string;
 };
 
 export type Thread = {
-  id: string;
-  title: string;
-  imgUrl?: string;
-  firstResHead?: string;
-  resCount?: number;
+	id: string;
+	title: string;
+	imgUrl?: string;
+	firstResHead?: string;
+	resCount?: number;
 };
 
 export type Res = {
-  num: string;
-  name: string;
-  date: string;
-  body: string;
-  imgUrl?: string;
-  rsc?: string;
-  sod?: string;
-  mediaUrls?: string[];
+	num: string;
+	name: string;
+	date: string;
+	body: string;
+	imgUrl?: string;
+	rsc?: string;
+	sod?: string;
+	mediaUrls?: string[];
 };
 
 export type SortMode = {
-  name: string;
-  param: string;
+	name: string;
+	param: string;
 };
 
 export type HistoryItem = {
@@ -37,20 +37,19 @@ export type HistoryItem = {
 };
 
 export type Config = {
-  keyConfig: Record<string, string>;
-  helpText: Record<string, string>;
-  defaultSortMode: string;
+	keyConfig: Record<string, string>;
+	helpText: Record<string, string>;
+	defaultSortMode: string;
 };
 
 export type InkKey = {
-  upArrow?: boolean;
-  downArrow?: boolean;
-  leftArrow?: boolean;
-  rightArrow?: boolean;
-  return?: boolean;
-  escape?: boolean;
-  ctrl?: boolean;
-  shift?: boolean;
-  meta?: boolean;
+	upArrow?: boolean;
+	downArrow?: boolean;
+	leftArrow?: boolean;
+	rightArrow?: boolean;
+	return?: boolean;
+	escape?: boolean;
+	ctrl?: boolean;
+	shift?: boolean;
+	meta?: boolean;
 };
-

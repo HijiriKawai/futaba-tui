@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
-import type { Config } from '../types/futaba.js';
+import type {Config} from '../types/futaba.js';
 
 export const defaultConfig = {
 	keyConfig: {
@@ -47,33 +47,39 @@ export const defaultConfig = {
 };
 
 export function getConfigFilePath(): string {
-  const xdgConfigHome = process.env['XDG_CONFIG_HOME'] || path.join(os.homedir(), '.config');
-  const dir = path.join(xdgConfigHome, 'futaba-tui');
-  if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-  return path.join(dir, 'config.json');
+	const xdgConfigHome =
+		process.env['XDG_CONFIG_HOME'] || path.join(os.homedir(), '.config');
+	const dir = path.join(xdgConfigHome, 'futaba-tui');
+	if (!fs.existsSync(dir)) fs.mkdirSync(dir, {recursive: true});
+	return path.join(dir, 'config.json');
 }
 
 export function loadConfig(): Config {
-  const file = getConfigFilePath();
-  if (fs.existsSync(file)) {
-    try {
-      const json = JSON.parse(fs.readFileSync(file, 'utf-8'));
-      return {
-        ...defaultConfig,
-        ...json,
-        keyConfig: { ...defaultConfig.keyConfig, ...(json.keyConfig || {}) },
-        defaultSortMode: (json.defaultSortMode && json.defaultSortMode !== '') ? json.defaultSortMode : defaultConfig.defaultSortMode,
-      };
-    } catch {}
-  }
-  return defaultConfig;
+	const file = getConfigFilePath();
+	if (fs.existsSync(file)) {
+		try {
+			const json = JSON.parse(fs.readFileSync(file, 'utf-8'));
+			return {
+				...defaultConfig,
+				...json,
+				keyConfig: {...defaultConfig.keyConfig, ...(json.keyConfig || {})},
+				defaultSortMode:
+					json.defaultSortMode && json.defaultSortMode !== ''
+						? json.defaultSortMode
+						: defaultConfig.defaultSortMode,
+			};
+		} catch (error) {
+			console.error('設定ファイルの読み込みに失敗:', error);
+		}
+	}
+	return defaultConfig;
 }
 
 export function saveConfig(configObj: Config) {
-  const file = getConfigFilePath();
-  const objToSave = {
-    ...configObj,
-    helpText: defaultConfig.helpText,
-  };
-  fs.writeFileSync(file, JSON.stringify(objToSave, null, 2), 'utf-8');
+	const file = getConfigFilePath();
+	const objToSave = {
+		...configObj,
+		helpText: defaultConfig.helpText,
+	};
+	fs.writeFileSync(file, JSON.stringify(objToSave, null, 2), 'utf-8');
 }

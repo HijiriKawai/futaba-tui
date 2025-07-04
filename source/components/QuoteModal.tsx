@@ -1,17 +1,17 @@
 import React from 'react';
-import { Box, Text } from 'ink';
-import type { Res } from '../types/futaba.js';
-import config, { generateHelpText } from '../config.js';
+import {Box, Text} from 'ink';
+import type {Res} from '../types/futaba.js';
+import config, {generateHelpText} from '../config.js';
 
 type Props = {
-  res?: Res[];
+	res?: Res[];
 	message?: string;
-  onClose: () => void;
-  onSelect?: (idx: number) => void;
+	onClose: () => void;
+	onSelect?: (idx: number) => void;
 };
 
-export default function QuoteModal({ res, message }: Props) {
-  return (
+export default function QuoteModal({res, message}: Props) {
+	return (
 		<Box
 			flexDirection="column"
 			alignItems="center"

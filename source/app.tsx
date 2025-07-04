@@ -121,9 +121,12 @@ export default function App() {
 
 	// 全角→半角変換
 	function toHalfWidth(str: string) {
-		return str
-			.replace(/[！-～]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
-			.replace(/　/g, ' ');
+		return (
+			str
+				.replace(/[！-～]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xfee0))
+				// eslint-disable-next-line
+				.replace(/　/g, ' ')
+		);
 	}
 
 	function isKey(input: string, key: InkKey, configKey: string) {
@@ -160,7 +163,9 @@ export default function App() {
 			else if (isKey(input, key, 'right'))
 				setSelectedThread(prev => (prev + 1) % threads.length);
 			else if (isKey(input, key, 'up'))
-				setSelectedThread(prev => (prev - visibleCols + threads.length) % threads.length);
+				setSelectedThread(
+					prev => (prev - visibleCols + threads.length) % threads.length,
+				);
 			else if (isKey(input, key, 'down'))
 				setSelectedThread(prev => (prev + visibleCols) % threads.length);
 			else if (isKey(input, key, 'sortPrev'))
@@ -192,9 +197,9 @@ export default function App() {
 				if (imgs.length === 1) {
 					const img = imgs[0];
 					let cmd = '';
-					if (process.platform === 'darwin') cmd = `open \"${img}\"`;
-					else if (process.platform === 'win32') cmd = `start \"\" \"${img}\"`;
-					else cmd = `xdg-open \"${img}\"`;
+					if (process.platform === 'darwin') cmd = `open "${img}"`;
+					else if (process.platform === 'win32') cmd = `start "${img}"`;
+					else cmd = `xdg-open "${img}"`;
 					exec(cmd);
 				} else if (imgs.length > 1) {
 					setUrlSelectMode({urls: imgs, resIdx: selectedRes});
@@ -234,9 +239,9 @@ export default function App() {
 				if (imgs.length === 1) {
 					const img = imgs[0];
 					let cmd = '';
-					if (process.platform === 'darwin') cmd = `open \"${img}\"`;
-					else if (process.platform === 'win32') cmd = `start \"\" \"${img}\"`;
-					else cmd = `xdg-open \"${img}\"`;
+					if (process.platform === 'darwin') cmd = `open "${img}"`;
+					else if (process.platform === 'win32') cmd = `start "${img}"`;
+					else cmd = `xdg-open "${img}"`;
 					exec(cmd);
 				} else if (imgs.length > 1) {
 					setUrlSelectMode({urls: imgs, resIdx: selectedRes});
@@ -252,7 +257,7 @@ export default function App() {
 						const url = urls[0];
 						let cmd = '';
 						if (process.platform === 'darwin') cmd = `open "${url}"`;
-						else if (process.platform === 'win32') cmd = `start "" "${url}"`;
+						else if (process.platform === 'win32') cmd = `start "${url}"`;
 						else cmd = `xdg-open "${url}"`;
 						exec(cmd);
 					} else {
@@ -327,9 +332,9 @@ export default function App() {
 				const url = urlSelectMode.urls[idx];
 				if (url) {
 					let cmd = '';
-					if (process.platform === 'darwin') cmd = `open "${url}\"`;
-					else if (process.platform === 'win32') cmd = `start "" "${url}\"`;
-					else cmd = `xdg-open "${url}\"`;
+					if (process.platform === 'darwin') cmd = `open "${url}"`;
+					else if (process.platform === 'win32') cmd = `start "${url}"`;
+					else cmd = `xdg-open "${url}"`;
 					exec(cmd);
 				}
 				setUrlSelectMode(null);
