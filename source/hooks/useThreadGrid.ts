@@ -57,7 +57,8 @@ export function useThreadGrid(
 			})
 			.catch(() => setError('スレッド一覧の取得に失敗しました'))
 			.finally(() => setLoading(false));
-	}, [boardUrl, sortMode, reloadTrigger, titleCache]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [boardUrl, sortMode, reloadTrigger]);
 
 	useEffect(() => {
 		async function loadThumbs() {
@@ -92,7 +93,8 @@ export function useThreadGrid(
 				setThumbCache(prev => ({...prev, ...newCache}));
 		}
 		loadThumbs();
-	}, [threads, boardUrl, thumbCache]);
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [threads, boardUrl]);
 
 	return {
 		threads,
