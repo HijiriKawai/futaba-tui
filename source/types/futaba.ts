@@ -39,13 +39,6 @@ export type HistoryItem = {
 export type Config = {
   keyConfig: Record<string, string>;
   helpText: Record<string, string>;
-  threadGrid: {
-    cols: number;
-    rows: number;
-  };
-  threadDetail: {
-    windowSize: number;
-  };
   defaultSortMode: string;
 };
 

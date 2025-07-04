@@ -12,7 +12,7 @@ import {exec} from 'child_process';
 import process from 'process';
 import UrlSelectModal from './components/UrlSelectModal.js';
 import QuoteModal from './components/QuoteModal.js';
-import type {HistoryItem, Config, InkKey, Res} from './types/futaba.js';
+import type {HistoryItem, InkKey, Res} from './types/futaba.js';
 import HistoryList from './components/HistoryList.js';
 import SettingsEditor from './components/SettingsEditor.js';
 import {loadHistory, saveHistory} from './utils.js';
@@ -110,28 +110,10 @@ export default function App() {
 	// 設定編集用の全項目リスト
 	const keyConfigKeys: string[] = Object.keys(configState.keyConfig);
 	if (!keyConfigKeys.includes('quoteModal')) keyConfigKeys.push('quoteModal');
-	const threadGridKeys: string[] = Object.keys(configState.threadGrid).map(
-		k => `threadGrid.${k}`,
-	);
-	const threadDetailKeys: string[] = Object.keys(configState.threadDetail).map(
-		k => `threadDetail.${k}`,
-	);
 	// 設定値取得
 	function getValue(key: string): string | number {
 		if (!key) return '';
 		if (keyConfigKeys.includes(key)) return configState.keyConfig[key] ?? '';
-		if (threadGridKeys.includes(key))
-			return (
-				configState.threadGrid[
-					key.replace('threadGrid.', '') as keyof Config['threadGrid']
-				] ?? ''
-			);
-		if (threadDetailKeys.includes(key))
-			return (
-				configState.threadDetail[
-					key.replace('threadDetail.', '') as keyof Config['threadDetail']
-				] ?? ''
-			);
 		if (key === settings.defaultSortModeKey)
 			return configState.defaultSortMode || '';
 		return '';
@@ -158,6 +140,10 @@ export default function App() {
 		return input === val;
 	}
 
+	// visibleColsをThreadGridと同じ計算で定義
+	const CARD_WIDTH = 35;
+	const visibleCols = Math.max(1, Math.floor(boxSize.width / CARD_WIDTH));
+
 	useInput((input, key) => {
 		const inputNorm = input ? toHalfWidth(input) : input;
 		if (screen === 'board') {
@@ -174,15 +160,9 @@ export default function App() {
 			else if (isKey(input, key, 'right'))
 				setSelectedThread(prev => (prev + 1) % threads.length);
 			else if (isKey(input, key, 'up'))
-				setSelectedThread(
-					prev =>
-						(prev - configState.threadGrid.cols + threads.length) %
-						threads.length,
-				);
+				setSelectedThread(prev => (prev - visibleCols + threads.length) % threads.length);
 			else if (isKey(input, key, 'down'))
-				setSelectedThread(
-					prev => (prev + configState.threadGrid.cols) % threads.length,
-				);
+				setSelectedThread(prev => (prev + visibleCols) % threads.length);
 			else if (isKey(input, key, 'sortPrev'))
 				setSortMode(prev => (prev - 1 + SORT_MODES.length) % SORT_MODES.length);
 			else if (isKey(input, key, 'sortNext'))

@@ -43,8 +43,6 @@ export const defaultConfig = {
 		quoteModal:
 			'数字:ジャンプ {quoteModalCancel}/{quoteModalCancelEsc}/{quoteModalCancelEnter}:閉じる',
 	},
-	threadGrid: {cols: 5, rows: 3},
-	threadDetail: {windowSize: 7},
 	defaultSortMode: '勢順',
 };
 
@@ -64,8 +62,6 @@ export function loadConfig(): Config {
         ...defaultConfig,
         ...json,
         keyConfig: { ...defaultConfig.keyConfig, ...(json.keyConfig || {}) },
-        threadGrid: { ...defaultConfig.threadGrid, ...(json.threadGrid || {}) },
-        threadDetail: { ...defaultConfig.threadDetail, ...(json.threadDetail || {}) },
         defaultSortMode: (json.defaultSortMode && json.defaultSortMode !== '') ? json.defaultSortMode : defaultConfig.defaultSortMode,
       };
     } catch {}

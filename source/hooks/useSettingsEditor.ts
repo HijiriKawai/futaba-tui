@@ -15,16 +15,12 @@ export function useSettingsEditor(configState: Config, setConfigState: (c: Confi
 
   // 設定編集用の全項目リスト
   const keyConfigKeys: string[] = Object.keys(configState.keyConfig);
-  const threadGridKeys: string[] = Object.keys(configState.threadGrid).map(k => `threadGrid.${k}`);
-  const threadDetailKeys: string[] = Object.keys(configState.threadDetail).map(k => `threadDetail.${k}`);
   const defaultSortModeKey = 'defaultSortMode';
-  const allKeys: string[] = [...keyConfigKeys, ...threadGridKeys, ...threadDetailKeys, defaultSortModeKey];
+  const allKeys: string[] = [...keyConfigKeys, defaultSortModeKey];
 
 	function getValue(key: string): string | number {
     if (!key) return '';
     if (keyConfigKeys.includes(key)) return configState.keyConfig[key] ?? '';
-    if (threadGridKeys.includes(key)) return configState.threadGrid[key.replace('threadGrid.', '') as keyof Config['threadGrid']] ?? '';
-    if (threadDetailKeys.includes(key)) return configState.threadDetail[key.replace('threadDetail.', '') as keyof Config['threadDetail']] ?? '';
     if (key === defaultSortModeKey) return configState.defaultSortMode;
     return '';
 	}
@@ -34,28 +30,6 @@ export function useSettingsEditor(configState: Config, setConfigState: (c: Confi
     let newConfig = { ...configState };
     if (key && keyConfigKeys.includes(key)) {
       // キー割り当ては物理キー入力で処理するのでここでは何もしない
-    } else if (key && threadGridKeys.includes(key)) {
-      const k = key.replace('threadGrid.', '');
-      const num = Number(val);
-      if (isNaN(num) || num <= 0) {
-        setMessage('数値を入力してください');
-        return;
-      }
-      newConfig = {
-        ...newConfig,
-        threadGrid: { ...newConfig.threadGrid, [k]: num },
-      };
-    } else if (key && threadDetailKeys.includes(key)) {
-      const k = key.replace('threadDetail.', '');
-      const num = Number(val);
-      if (isNaN(num) || num <= 0) {
-        setMessage('数値を入力してください');
-        return;
-      }
-      newConfig = {
-        ...newConfig,
-        threadDetail: { ...newConfig.threadDetail, [k]: num },
-      };
     } else if (key === defaultSortModeKey) {
       if (!SORT_MODES.some(m => m.name === val)) {
         setMessage('有効なソート名を選択してください');
@@ -85,7 +59,7 @@ export function useSettingsEditor(configState: Config, setConfigState: (c: Confi
     editValue, setEditValue,
     message, setMessage,
     keyInputMode, setKeyInputMode,
-    keyConfigKeys, threadGridKeys, threadDetailKeys, allKeys,
+    keyConfigKeys, allKeys,
     getValue, submitEditValue, saveSettingsToFile,
     defaultSortModeKey,
   };
