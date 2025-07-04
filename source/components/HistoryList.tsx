@@ -84,7 +84,7 @@ export default function HistoryList({
 							alignItems="center"
 							{...(selectedHistory === realIdx
 								? {backgroundColor: 'blue'}
-							: {})}
+								: {})}
 						>
 							<Text color={selectedHistory === realIdx ? 'white' : undefined}>
 								{selectedHistory === realIdx ? '▶ ' : '  '}
