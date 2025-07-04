@@ -44,6 +44,7 @@ const defaultConfig = {
 		quoteModal:
 			'数字:ジャンプ {quoteModalCancel}/{quoteModalCancelEsc}/{quoteModalCancelEnter}:閉じる',
 	},
+	defaultSortMode: '勢順', // デフォルトのソートモード
 };
 
 // XDG Base Directory対応

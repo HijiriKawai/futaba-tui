@@ -56,13 +56,7 @@ npm install --global futaba-tui
     "clearHistory": "C", // 履歴クリア
     "toggleHistoryAll": "A" // 全履歴表示トグル
   },
-  "threadGrid": {
-    "cols": 5,   // スレッド一覧の列数
-    "rows": 3    // スレッド一覧の行数
-  },
-  "threadDetail": {
-    "windowSize": 7 // レス一覧の表示数
-  }
+  "defaultSortMode": "勢順", // デフォルトのソートモード
 }
 ```
 
@@ -93,12 +87,12 @@ npm install --global futaba-tui
     "quoteModalCancelEnter": "z",
     "clearHistory": "C",
     "toggleHistoryAll": "A"
-  }
+  },
+  "defaultSortMode": "勢順", // デフォルトのソートモード
 }
 ```
 
 ### 設定可能な項目
 
 - `keyConfig`: すべての操作キー（上下左右・決定・戻る・終了・画像・リンク・ソート・履歴・削除非表示・引用ジャンプ・モーダルキャンセル・履歴クリア・全履歴表示トグル等）
-- `threadGrid.cols`/`rows`: スレッド一覧の表示列数・行数
-- `threadDetail.windowSize`: レス一覧のウィンドウサイズ
+- `defaultSortMode`: TUI立ち上げ時のソートモード
