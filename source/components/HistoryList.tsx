@@ -2,6 +2,7 @@ import React from 'react';
 import {Box, Text} from 'ink';
 import type {HistoryItem} from '../types/futaba.js';
 import config, {generateHelpText} from '../config.js';
+import process from 'process';
 
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
@@ -10,6 +11,8 @@ type Props = {
 	selectedHistory: number;
 	showAll: boolean;
 	visibleRows?: number;
+	scrollOffset: number;
+	setScrollOffset: (offset: number) => void;
 };
 
 export default function HistoryList({
@@ -17,15 +20,47 @@ export default function HistoryList({
 	selectedHistory,
 	showAll,
 	visibleRows,
+	scrollOffset,
+	setScrollOffset,
 }: Props) {
 	const now = Date.now();
 	const filtered = showAll
 		? history
 		: history.filter(h => now - new Date(h.accessedAt).getTime() < ONE_DAY_MS);
 
-	const size = visibleRows ?? filtered.length;
-	const start = Math.max(0, selectedHistory - Math.floor(size / 2));
-	const visible = filtered.slice(start, start + size);
+	// 1アイテムの高さを計算（border上下+2, marginBottom+1, 本体の折り返し行数）
+	function estimateItemHeight(item: HistoryItem, width: number): number {
+		const text = `${item.thumbUrl ? '[img] ' : ''}${item.firstResHead} ${new Date(item.accessedAt).toLocaleString()}`;
+		const lines = Math.ceil(text.length / width);
+		return lines + 2 + 1;
+	}
+
+	const termRows = process.stdout?.rows ? process.stdout.rows - 8 : 10;
+	const boxWidth = process.stdout?.columns ? process.stdout.columns - 4 : 80;
+	const size = visibleRows ?? termRows;
+
+	const maxOffset = Math.max(0, filtered.length - size);
+	const safeScrollOffset = Math.min(Math.max(scrollOffset, 0), maxOffset);
+
+	React.useEffect(() => {
+		if (selectedHistory < safeScrollOffset) {
+			setScrollOffset(selectedHistory);
+		} else if (selectedHistory >= safeScrollOffset + size) {
+			setScrollOffset(selectedHistory - size + 1);
+		}
+	}, [selectedHistory, safeScrollOffset, setScrollOffset, size]);
+
+	// 合計高さで収まる分だけ表示
+	let total = 0;
+	const visible: HistoryItem[] = [];
+	for (let i = safeScrollOffset; i < filtered.length; i++) {
+		const item = filtered[i];
+		if (!item) continue;
+		const h = estimateItemHeight(item, boxWidth);
+		if (total + h > size) break;
+		visible.push(item);
+		total += h;
+	}
 
 	return (
 		<Box flexDirection="column">
@@ -37,7 +72,7 @@ export default function HistoryList({
 				<Text color="yellow">履歴がありません</Text>
 			) : (
 				visible.map((item, idx) => {
-					const realIdx = start + idx;
+					const realIdx = safeScrollOffset + idx;
 					return (
 						<Box
 							key={item.threadId}
@@ -49,7 +84,7 @@ export default function HistoryList({
 							alignItems="center"
 							{...(selectedHistory === realIdx
 								? {backgroundColor: 'blue'}
-								: {})}
+							: {})}
 						>
 							<Text color={selectedHistory === realIdx ? 'white' : undefined}>
 								{selectedHistory === realIdx ? '▶ ' : '  '}

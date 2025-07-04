@@ -54,6 +54,7 @@ export default function App() {
 	const [selectedHistory, setSelectedHistory] = useState(0);
 	const [showAllHistory, setShowAllHistory] = useState(false);
 	const [configState, setConfigState] = useState(loadConfig());
+	const [historyScrollOffset, setHistoryScrollOffset] = useState(0);
 
 	// 設定画面用ロジックをフックで取得
 	const settings = useSettingsEditor(configState, setConfigState);
@@ -532,6 +533,8 @@ export default function App() {
 					selectedHistory={selectedHistory}
 					showAll={showAllHistory}
 					visibleRows={BOX_HEIGHT - 8}
+					scrollOffset={historyScrollOffset}
+					setScrollOffset={setHistoryScrollOffset}
 				/>
 			)}
 			{screen === 'settings' && (
