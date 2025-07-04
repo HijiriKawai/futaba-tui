@@ -11,7 +11,11 @@ export async function fetchResponses(boardUrl: string, threadId: string): Promis
   // スレ画（最初のレス）
   const threDiv = $('.thre');
   if (threDiv.length > 0) {
-    const imgA = threDiv.find('a[href$=".jpg"],a[href$=".jpeg"],a[href$=".png"],a[href$=".gif"]').first();
+    const imgA = threDiv
+			.find(
+				'a[href$=".jpg"],a[href$=".jpeg"],a[href$=".png"],a[href$=".gif"],a[href$=".webp"]',
+			)
+			.first();
     let imgUrl: string | undefined = undefined;
     if (imgA.length > 0) {
       const href = imgA.attr('href');
@@ -42,7 +46,7 @@ export async function fetchResponses(boardUrl: string, threadId: string): Promis
         mediaUrls.push(boardUrl.replace(/\/$/, '') + '/src/' + imgFile);
       }
     }
-    const fileRegex = /\b(fu?\d+\.(?:jpe?g|png|gif|webm|mp4))\b/gi;
+    const fileRegex = /\b(fu?\d+\.(?:jpe?g|png|gif|webp|webm|mp4))\b/gi;
     let match;
     while ((match = fileRegex.exec(body)) !== null) {
       const fname = match[1];
@@ -75,7 +79,7 @@ export async function fetchResponses(boardUrl: string, threadId: string): Promis
       const sod = sodMatch ? sodMatch[1] : '0';
       // body内のf/fuで始まる画像・動画ファイル名を抽出
       const mediaUrls = [];
-      const fileRegex = /\b(fu?\d+\.(?:jpe?g|png|gif|webm|mp4))\b/gi;
+      const fileRegex = /\b(fu?\d+\.(?:jpe?g|png|gif|webp|webm|mp4))\b/gi;
       let match;
       while ((match = fileRegex.exec(body)) !== null) {
         const fname = match[1];

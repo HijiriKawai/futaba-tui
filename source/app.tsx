@@ -205,7 +205,7 @@ export default function App() {
 				if (res?.imgUrl) imgs.push(res.imgUrl);
 				if (res?.mediaUrls) {
 					imgs = imgs.concat(
-						res.mediaUrls.filter(url => /\.(jpe?g|png|gif)$/i.test(url)),
+						res.mediaUrls.filter(url => /\.(jpe?g|png|gif|webp)$/i.test(url)),
 					);
 				}
 				imgs = Array.from(new Set(imgs));
@@ -247,7 +247,7 @@ export default function App() {
 				if (res?.imgUrl) imgs.push(res.imgUrl);
 				if (res?.mediaUrls) {
 					imgs = imgs.concat(
-						res.mediaUrls.filter(url => /\.(jpe?g|png|gif)$/i.test(url)),
+						res.mediaUrls.filter(url => /\.(jpe?g|png|gif|webp)$/i.test(url)),
 					);
 				}
 				imgs = Array.from(new Set(imgs));

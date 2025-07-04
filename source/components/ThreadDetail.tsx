@@ -25,7 +25,7 @@ export default function ThreadDetail({ responses, selected, resThumb, mediaThumb
     // 本文の行数（空行除外）
     const bodyLines = res.body.split('\n').filter(line => line.trim() !== '').length;
     // 画像・動画の数
-    const imageCount = (res.mediaUrls?.filter(url => /\.(jpe?g|png|gif)$/i.test(url)).length || 0);
+    const imageCount = (res.mediaUrls?.filter(url => /\.(jpe?g|png|gif|webp)$/i.test(url)).length || 0);
     const videoCount = (res.mediaUrls?.filter(url => /\.(webm|mp4)$/i.test(url)).length || 0);
     // 画像は1つにつき7行、動画は1つにつき1行
     const imageLines = imageCount * 7;
@@ -143,7 +143,7 @@ export default function ThreadDetail({ responses, selected, resThumb, mediaThumb
 							{/* 画像・動画表示 */}
 							{res.mediaUrls &&
 								res.mediaUrls.map((url, i) => {
-									if (/\.(jpe?g|png|gif)$/i.test(url)) {
+									if (/\.(jpe?g|png|gif|webp)$/i.test(url)) {
 										if (mediaThumbCache[url]) {
 											return <Text key={i}>{mediaThumbCache[url]}</Text>;
 										} else {
