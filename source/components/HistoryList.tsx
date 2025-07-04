@@ -39,24 +39,44 @@ export default function HistoryList({
 	const boxWidth = process.stdout?.columns ? process.stdout.columns - 4 : 80;
 	const size = visibleRows ?? termRows;
 
-	const maxOffset = Math.max(0, filtered.length - size);
-	const safeScrollOffset = Math.min(Math.max(scrollOffset, 0), maxOffset);
+	const itemHeights = filtered.map(item => estimateItemHeight(item, boxWidth));
 
 	React.useEffect(() => {
-		if (selectedHistory < safeScrollOffset) {
-			setScrollOffset(selectedHistory);
-		} else if (selectedHistory >= safeScrollOffset + size) {
-			setScrollOffset(selectedHistory - size + 1);
+		let acc = 0,
+			found = false;
+		for (let i = scrollOffset; i < filtered.length; i++) {
+			const h = itemHeights[i];
+			if (h == null) break;
+			if (acc + h > size) break;
+			acc += h;
+			if (i === selectedHistory) found = true;
 		}
-	}, [selectedHistory, safeScrollOffset, setScrollOffset, size]);
+		if (!found && selectedHistory < filtered.length) {
+			// selectedHistoryが一番下に来るようなscrollOffsetを計算
+			let t = 0,
+				s = selectedHistory;
+			while (s >= 0) {
+				const h = itemHeights[s];
+				if (h == null) break;
+				t += h;
+				if (t > size) break;
+				s--;
+			}
+			setScrollOffset(Math.max(0, s + 1));
+		} else if (selectedHistory < scrollOffset) {
+			setScrollOffset(selectedHistory);
+		}
+		// eslint-disable-next-line react-hooks/exhaustive-deps
+	}, [selectedHistory, scrollOffset, size, itemHeights, setScrollOffset]);
 
 	// 合計高さで収まる分だけ表示
 	let total = 0;
 	const visible: HistoryItem[] = [];
-	for (let i = safeScrollOffset; i < filtered.length; i++) {
+	for (let i = scrollOffset; i < filtered.length; i++) {
 		const item = filtered[i];
 		if (!item) continue;
-		const h = estimateItemHeight(item, boxWidth);
+		const h = itemHeights[i];
+		if (h == null) break;
 		if (total + h > size) break;
 		visible.push(item);
 		total += h;
@@ -72,7 +92,7 @@ export default function HistoryList({
 				<Text color="yellow">履歴がありません</Text>
 			) : (
 				visible.map((item, idx) => {
-					const realIdx = safeScrollOffset + idx;
+					const realIdx = scrollOffset + idx;
 					return (
 						<Box
 							key={item.threadId}
